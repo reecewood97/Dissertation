@@ -28,6 +28,10 @@ public class Complex {
 		return new Complex(getReal()+arg.getReal(),getImag()+arg.getImag());
 	}
 	
+	public Complex sub(Complex arg){
+		return new Complex(getReal()-arg.getReal(),getImag()-arg.getImag());
+	}
+	
 	public Complex mult(Complex arg){
 		return new Complex(getReal()*arg.getReal()+getImag()*arg.getImag(),
 				getReal()*arg.getImag()+getImag()*arg.getReal());
