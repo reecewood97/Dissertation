@@ -1,12 +1,14 @@
 package project;
 
+import java.math.BigDecimal;
+
 public class Complex {
 	
-	private double real;
-	private double imag;
+	private BigDecimal real;
+	private BigDecimal imag;
 
 	//An immutable class for implementing complex numbers
-	public Complex(double real, double imag) {
+	public Complex(BigDecimal real, BigDecimal imag) {
 		this.real = real;
 		this.imag = imag;
 	}
@@ -16,29 +18,45 @@ public class Complex {
 		this.imag = original.getImag();
 	}
 	
-	public double getReal(){
+	public BigDecimal getReal(){
 		return real;
 	}
 	
-	public double getImag(){
+	public BigDecimal getImag(){
 		return imag;
 	}
 	
 	public Complex add(Complex arg){
-		return new Complex(getReal()+arg.getReal(),getImag()+arg.getImag());
+		return new Complex(getReal().add(arg.getReal()),getImag().add(arg.getImag()));
 	}
 	
 	public Complex sub(Complex arg){
-		return new Complex(getReal()-arg.getReal(),getImag()-arg.getImag());
+		return new Complex(getReal().subtract(arg.getReal()),getImag().subtract(arg.getImag()));
 	}
 	
 	public Complex mult(Complex arg){
-		return new Complex(getReal()*arg.getReal()+getImag()*arg.getImag(),
-				getReal()*arg.getImag()+getImag()*arg.getReal());
+		return new Complex(getReal().multiply(arg.getReal()).subtract(getImag().multiply(arg.getImag())),
+				getReal().multiply(arg.getImag()).add(getImag().multiply(arg.getReal())));
+	}
+	
+	public Complex mod(){
+		BigDecimal real = this.real;
+		BigDecimal imag = this.imag;
+		if(real.signum()==-1) {
+			real = real.negate();
+		}
+		if(imag.signum()==-1) {
+			imag = imag.negate();
+		}
+		return new Complex(real, imag);
+	}
+	
+	public BigDecimal prob() {
+		return this.mult(this).mod().getReal();
 	}
 	
 	public Complex conj() {
-		return new Complex(getReal(),-getImag());
+		return new Complex(getReal(),getImag().negate());
 	}
 
 }
