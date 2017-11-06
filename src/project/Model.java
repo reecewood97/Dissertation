@@ -25,6 +25,10 @@ public class Model {
 	public Complex[] getState() {
 		return states;
 	}
+	
+	public int getNum() {
+		return num;
+	}
 																		  //3     2   1
 	public void teleInit(Complex a1is0, Complex a1is1) throws Exception { //a1, (a2, b1)
 		if(num!=3) {
