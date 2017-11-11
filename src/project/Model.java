@@ -10,6 +10,10 @@ public class Model {
 	private int num;		//number of Qbits
 	private int dimension;	//number of possibles states
 	private Complex[] states;
+	private Complex[][] process;
+	private int position;
+	private int maxPos;
+	private String teleOrError;
 	private RoundingMode rmode = RoundingMode.valueOf(1);
 
 	public Model(int num) {
@@ -20,10 +24,37 @@ public class Model {
 		for(int i = 1; i < dimension; i++) { //Initiates all Qbits to 0
 			this.states[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
 		}
+		position = 0;
+	}
+	
+	public String teleOrError() {
+		return teleOrError;
+	}
+	
+	public int maxPos() {
+		return maxPos;
+	}
+	
+	public int getPos() {
+		return position;
 	}
 	
 	public Complex[] getState() {
-		return states;
+		return process[position];
+	}
+	
+	public int incPos() {
+		if(position!=maxPos){
+			position++;
+		}
+		return position;
+	}
+	
+	public int decPos() {
+		if(position!=0) {
+			position--;
+		}
+		return position;
 	}
 	
 	public int getNum() {
@@ -38,8 +69,28 @@ public class Model {
 				&& a1is0.mult(a1is0).mod().add(a1is1.mult(a1is1).mod()).getReal().doubleValue()<1.000000001)) {
 			throw new Exception("teleInit did not receive normalised values");
 		}
+		process = new Complex[9][dimension];
+		maxPos = 8;
+		teleOrError = "Teleportation";
 		states[0] = new Complex(a1is0.getReal(),a1is0.getImag()); //000
 		states[4] = new Complex(a1is1.getReal(),a1is1.getImag()); //100
+		process[0] = states;
+		H(2);
+		process[1] = states;
+		Cnot(2,1);
+		process[2] = states;
+		Cnot(3,2);
+		process[3] = states;
+		H(3);
+		process[4] = states;
+		M(3);
+		process[5] = states;
+		M(2);
+		process[6] = states;
+		Cnot(2,1);
+		process[7] = states;
+		CZ(3,1);
+		process[8] = states;
 	}
 	
 	public void H(int target) {

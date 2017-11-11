@@ -12,7 +12,7 @@ public class FrameTest {
 	//... Create model, view, and controller.  They are
 	//    created once here and passed to the parts that
 	//    need them so there is only one copy of each.
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		
 		String[] possibleValues = { "Teleportation", "Error Correction" };
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
@@ -52,12 +52,12 @@ public class FrameTest {
 				System.exit(1);
 			} break;
 			}
-			try {
+			//try {
 				model.teleInit(a1is0, a1is1);
-			} catch (Exception e) {
+			/*} catch (Exception e) {
 				System.err.println("Normalisation failed");
 				System.exit(1);
-			}
+			}*/
 			
 			View view = new View(model);
 			Controller controller = new Controller(model, view);
