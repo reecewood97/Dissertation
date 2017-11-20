@@ -50,6 +50,9 @@ public class FrameTest {
 			} catch(NumberFormatException e) {
 				System.err.println("Did not enter parseable text");
 				System.exit(1);
+			} catch(ArithmeticException e){
+				System.err.println("Total probability summed to 0");
+				System.exit(1);
 			} break;
 			}
 			//try {
@@ -105,6 +108,9 @@ public class FrameTest {
 		}
 		
 		BigDecimal totProb = r0.subtract(i0).add(r1.subtract(i1));
+		if(totProb.signum()==0){
+			
+		}
 		BigDecimal r0norm = r0.divide(totProb, 20, rmode);
 		BigDecimal i0norm = i0.divide(totProb, 20, rmode);
 		BigDecimal r1norm = r1.divide(totProb, 20, rmode);

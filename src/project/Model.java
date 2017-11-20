@@ -16,6 +16,10 @@ public class Model {
 	private String teleOrError;
 	private RoundingMode rmode = RoundingMode.valueOf(1);
 
+	/**
+	 * Initiates a model with the state of all zero's
+	 * @param num The number of qubits to be simulated
+	 */
 	public Model(int num) {
 		this.num = num;
 		this.dimension = (int)Math.pow(2,num);
@@ -27,22 +31,39 @@ public class Model {
 		position = 0;
 	}
 	
+	/**
+	 * Returns whether teleportation or error correction is being simulated
+	 * @return "Teleportation" or "Error Correction"
+	 */
 	public String teleOrError() {
 		return teleOrError;
 	}
 	
+	/**
+	 * @return The number of steps in the process minus one
+	 */
 	public int maxPos() {
 		return maxPos;
 	}
 	
+	/**
+	 * @return The current position being observed
+	 */
 	public int getPos() {
 		return position;
 	}
 	
+	/**
+	 * @return The state at the current position being observed
+	 */
 	public Complex[] getState() {
 		return process[position];
 	}
 	
+	/**
+	 * Increments the current position, to be used by controller
+	 * @return The new position
+	 */
 	public int incPos() {
 		if(position!=maxPos){
 			position++;
@@ -50,6 +71,10 @@ public class Model {
 		return position;
 	}
 	
+	/**
+	 * Decrements the current position, to be used by controller
+	 * @return The new position
+	 */
 	public int decPos() {
 		if(position!=0) {
 			position--;
@@ -57,10 +82,33 @@ public class Model {
 		return position;
 	}
 	
+	/**
+	 * @return The number of qubits being simulated
+	 */
 	public int getNum() {
 		return num;
 	}
-																		  //3     2   1
+	
+	/**
+	 * @param num The qubit in question
+	 * @return The probability of that qubit being 1
+	 */
+	public BigDecimal p(int num) {
+		BigDecimal res = new BigDecimal(0);
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,num-1))  %2)==1) { //For every state where that number would be 1
+				res = res.add(process[position][i].prob());
+			}
+		}
+		return res;
+	}
+	
+	/**
+	 * Initiates a state for teleportation for a qubit of given state
+	 * @param a1is0 A complex number describing the chance of the qubit being zero
+	 * @param a1is1 A complex number describing the chance of the qubit being one
+	 * @throws Exception If the state has the wrong number of bits or if the values are not normalised
+	 */ // 																	3	 2	 1
 	public void teleInit(Complex a1is0, Complex a1is1) throws Exception { //a1, (a2, b1)
 		if(num!=3) {
 			throw new Exception("teleInit called on wrong size of qbits, num is" + num + ", should be 3");
@@ -93,6 +141,10 @@ public class Model {
 		process[8] = states;
 	}
 	
+	/**
+	 * Implements a Hadamard gate
+	 * @param target The target qubit
+	 */
 	public void H(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
@@ -117,6 +169,11 @@ public class Model {
 				newstates[y] = newstates[y].add(new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(2)), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
 			}
 		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		
 		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After H on "+target);
 		for(int i = 0; i < dimension; i++) {
@@ -124,14 +181,17 @@ public class Model {
 			fin = fin.add(sqrd);
 			System.out.println("P(state "+i+") is: "+sqrd.getReal());
 		}
-		//System.out.println("P(state "+i+") is: "+sqrd.getReal()*sqrd.getReal());
 		System.out.println("Real is : "+fin.getReal());
-		System.out.println("Imag is : "+fin.getImag());
 		System.out.println(fin.getReal().doubleValue()==1);
 		System.out.println();
 		states = newstates;
 	}
 
+	/**
+	 * Implements a controlled not gate.
+	 * @param control The control qubit
+	 * @param target The target qubit
+	 */
 	public void Cnot(int control, int target) {
 		double con = (double)control;
 		double tar = (double)target;
@@ -155,6 +215,11 @@ public class Model {
 				newstates[i] = newstates[i].add(states[i]);
 			}
 		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		
 		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After Cnot on "+control+ ", " +target);
 		for(int i = 0; i < dimension; i++) {
@@ -162,14 +227,16 @@ public class Model {
 			fin = fin.add(sqrd);
 			System.out.println("P(state "+i+") is: "+sqrd.getReal());
 		}
-		//System.out.println("P(state "+i+") is: "+sqrd.getReal()*sqrd.getReal());
 		System.out.println("Real is : "+fin.getReal());
-		System.out.println("Imag is : "+fin.getImag());
 		System.out.println(fin.getReal().doubleValue()==1);
 		System.out.println();
 		states = newstates;
 	}
 
+	/**
+	 * Implements a measurement gate
+	 * @param target The target qubit
+	 */
 	public void M(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
@@ -203,6 +270,11 @@ public class Model {
 				}
 			}
 		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		
 		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After M on "+target);
 		for(int i = 0; i < dimension; i++) {
@@ -210,14 +282,17 @@ public class Model {
 			fin = fin.add(sqrd);
 			System.out.println("P(state "+i+") is: "+sqrd.getReal());
 		}
-		//System.out.println("P(state "+i+") is: "+sqrd.getReal()*sqrd.getReal());
 		System.out.println("Real is : "+fin.getReal());
-		System.out.println("Imag is : "+fin.getImag());
 		System.out.println(fin.getReal().doubleValue()==1);
 		System.out.println();
 		states = newstates;
 	}
 	
+	/**
+	 * Implements a controlled Z gate
+	 * @param control The control qubit
+	 * @param target The target qubit
+	 */
 	public void CZ(int control, int target) {
 		double con = (double)control;
 		double tar = (double)target;
@@ -239,6 +314,11 @@ public class Model {
 				newstates[i] = newstates[i].add(states[i]);
 			}
 		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		
 		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		BigDecimal finImag = new BigDecimal(0);
 		System.out.println("After CZ on "+control+ ", " +target);
@@ -248,13 +328,54 @@ public class Model {
 			finImag = finImag.add(newstates[i].getImag());
 			System.out.println("P(state "+i+") is: "+sqrd.getReal());
 		}
-		//System.out.println("P(state "+i+") is: "+sqrd.getReal()*sqrd.getReal());
 		System.out.println("Total probability is: "+fin.getReal());
-		System.out.println("Imag is : "+fin.getImag());
 		System.out.println(fin.getReal().doubleValue()==1);
 		System.out.println();
+		
+		double res = 0;
+		double res2 = 0;
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,1-1))  %2)==1) { //For every state where that number would be 1
+				res2 = res2 + newstates[i].getReal().multiply(newstates[i].getReal()).doubleValue();
+				res = res + newstates[i].getImag().multiply(newstates[i].getImag()).doubleValue();
+			}
+		}
+		System.out.println("Final real state of b1 is: " + res2);
+		System.out.println("Final imag state of b1 is: " + res);
 		states = newstates;
 	}
+	
+	/**
+	 * Rounds a BigDecimal to 1, 0, 0.5, or 0.25 if it is close enough
+	 * @param param The BigDecimal to be rounded
+	 * @return The rounded BigDecimal
+	 */
+	private static BigDecimal BDround(BigDecimal param) {
+		if(BDcloseTo(param, 0)){
+			return new BigDecimal(0);
+		}
+		if(BDcloseTo(param, 1)){
+			return new BigDecimal(1);
+		}
+		if(BDcloseTo(param, 0.5)){
+			return new BigDecimal(0.5);
+		}
+		if(BDcloseTo(param, 0.25)){
+			return new BigDecimal(0.25);
+		}
+		return param;
+	}
+	
+	/**
+	 * Calculates whether the BigDecimal is close enough to a double to be rounded
+	 * @param dec The BigDecimal that may be rounded
+	 * @param doub The double being rounded to
+	 * @return True if it should be rounded, false if not
+	 */
+	private static boolean BDcloseTo(BigDecimal dec, double doub) {
+		return (dec.doubleValue()>=(doub-0.0000000001) && dec.doubleValue()<=(doub+0.0000000001));
+	}
+	
 	
 	
 	/*private Complex[] copy() {
@@ -264,5 +385,4 @@ public class Model {
 		}
 		return newstates;
 	}*/
-
 }
