@@ -7,12 +7,17 @@ import java.math.RoundingMode;
 
 public class Model {
 	
+	private Instruction[] teleInstructions = { new Instruction("H",2), new Instruction("Cnot",2,1),
+			new Instruction("Cnot",3,2), new Instruction("H",3), new Instruction("M",3),
+			new Instruction("M",2), new Instruction("Cnot",2,1), new Instruction("CZ",3,1)};
+	
 	private int num;		//number of Qbits
 	private int dimension;	//number of possibles states
 	private Complex[] states;
 	private Complex[][] process;
 	private int position;
 	private int maxPos;
+	private Instruction[] instructions;
 	private String teleOrError;
 	private RoundingMode rmode = RoundingMode.valueOf(1);
 
@@ -37,6 +42,13 @@ public class Model {
 	 */
 	public String teleOrError() {
 		return teleOrError;
+	}
+	
+	/**
+	 * @return The instructions for the current process
+	 */
+	public Instruction[] getInstructions() {
+		return instructions;
 	}
 	
 	/**
@@ -66,7 +78,19 @@ public class Model {
 	 */
 	public int incPos() {
 		if(position!=maxPos){
+			states = process[position];
+			//perform instruction
+			Instruction inst = instructions[position];
+			String in = inst.getI();
+			switch(in) {
+			case "H": H(inst.getTar()); break;
+			case "Cnot": Cnot(inst.getCon(),inst.getTar()); break;
+			case "M": M(inst.getTar()); break;
+			case "CZ": CZ(inst.getCon(), inst.getTar()); break;
+			default: System.out.println("Instruction unrecognised in incPos"); break;
+			}
 			position++;
+			process[position] = states;
 		}
 		return position;
 	}
@@ -118,6 +142,7 @@ public class Model {
 			throw new Exception("teleInit did not receive normalised values");
 		}
 		process = new Complex[9][dimension];
+		instructions = teleInstructions;
 		maxPos = 8;
 		teleOrError = "Teleportation";
 		states[0] = new Complex(a1is0.getReal(),a1is0.getImag()); //000
@@ -346,7 +371,7 @@ public class Model {
 	}
 	
 	/**
-	 * Rounds a BigDecimal to 1, 0, 0.5, or 0.25 if it is close enough
+	 * Rounds a BigDecimal to 0, 0.25, -0.25, 0.5, -0.5, 1, or -1 if it is close enough
 	 * @param param The BigDecimal to be rounded
 	 * @return The rounded BigDecimal
 	 */
@@ -362,6 +387,15 @@ public class Model {
 		}
 		if(BDcloseTo(param, 0.25)){
 			return new BigDecimal(0.25);
+		}
+		if(BDcloseTo(param, -1)){
+			return new BigDecimal(-1);
+		}
+		if(BDcloseTo(param, -0.5)){
+			return new BigDecimal(-0.5);
+		}
+		if(BDcloseTo(param, -0.25)){
+			return new BigDecimal(-0.25);
 		}
 		return param;
 	}

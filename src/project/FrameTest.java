@@ -18,7 +18,9 @@ public class FrameTest {
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 		"Select the quantum process to be demonstrated", "Input", JOptionPane.INFORMATION_MESSAGE,
 		null, possibleValues, possibleValues[0]);
-		
+		if(selectedValue == null){
+			System.exit(0);
+		}
 		
 		if(selectedValue.equals(possibleValues[0])) {
 			Model model      = new Model(3);
@@ -49,10 +51,10 @@ public class FrameTest {
 				a1is1 = input[1];
 			} catch(NumberFormatException e) {
 				System.err.println("Did not enter parseable text");
-				System.exit(1);
+				System.exit(0);
 			} catch(ArithmeticException e){
 				System.err.println("Total probability summed to 0");
-				System.exit(1);
+				System.exit(0);
 			} break;
 			}
 			//try {
@@ -68,7 +70,7 @@ public class FrameTest {
 			view.setVisible(true);
 		} else {
 			System.out.println("Error Correction not implemented yet");
-			System.exit(1);
+			System.exit(0);
 		}
 
 	}
@@ -111,15 +113,47 @@ public class FrameTest {
 		if(totProb.signum()==0){
 			
 		}
+		if(totProb.signum()==-1){
+			totProb=totProb.negate();
+		}
 		BigDecimal r0norm = r0.divide(totProb, 20, rmode);
 		BigDecimal i0norm = i0.divide(totProb, 20, rmode);
 		BigDecimal r1norm = r1.divide(totProb, 20, rmode);
 		BigDecimal i1norm = i1.divide(totProb, 20, rmode);
 		
-		BigDecimal r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
-		BigDecimal i0rt = new BigDecimal(Math.sqrt(i0norm.doubleValue()));
-		BigDecimal r1rt = new BigDecimal(Math.sqrt(r1norm.doubleValue()));
-		BigDecimal i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
+		BigDecimal r0rt;
+		BigDecimal i0rt;
+		BigDecimal r1rt;
+		BigDecimal i1rt;
+		
+		if(r0norm.signum()==-1){
+			r0norm = r0norm.negate();
+			r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
+			r0rt = r0rt.negate();
+		} else {
+			r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
+		}
+		if(i0norm.signum()==-1){
+			i0norm = i0norm.negate();
+			i0rt = new BigDecimal(Math.sqrt(i0norm.doubleValue()));
+			i0rt = i0rt.negate();
+		} else {
+			i0rt = new BigDecimal(Math.sqrt(i0norm.doubleValue()));
+		}
+		if(r1norm.signum()==-1){
+			r1norm = r1norm.negate();
+			r1rt = new BigDecimal(Math.sqrt(r1norm.doubleValue()));
+			r1rt = r1rt.negate();
+		} else {
+			r1rt = new BigDecimal(Math.sqrt(r1norm.doubleValue()));
+		}
+		if(i1norm.signum()==-1){
+			i1norm = i1norm.negate();
+			i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
+			i1rt = i1rt.negate();
+		} else {
+			i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
+		}
 		
 		Complex[] ret = new Complex[2];
 		ret[0] = new Complex(r0rt, i0rt);

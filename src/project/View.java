@@ -20,15 +20,23 @@ public class View extends JFrame {
     private TextField count;
     
     private JInternalFrame viewSimp;
+    private JScrollPane viewScroll;
+    private JPanel viewPanel;
     private ArrayList<TextField> states;
     
     private JInternalFrame qubitView;
+    private JScrollPane qubitScroll;
+    private JPanel qubitPanel;
     private ArrayList<TextField> qubitStates;
+    
+    private JInternalFrame processView;
+    private JScrollPane processScroll;
+    private JPanel processPanel;
+    private ProcessComp processComp;
     
     private Model model;
     
     //======================================================= constructor
-    /** Constructor */
     View(Model model) {
         //... Set up the logic
         this.model = model;
@@ -36,55 +44,84 @@ public class View extends JFrame {
         //... Initialize components
         states = new ArrayList<TextField>();
         for(int i = 0; i < model.getState().length; i++) {
-        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(5, RoundingMode.DOWN);
-        	states.add(new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,40));
+        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
+        	states.add(new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30));
         	states.get(i).setEditable(false);
         }
         
         qubitStates = new ArrayList<TextField>();
         for(int i = 0; i < model.getNum(); i++) {
-        	BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(5, RoundingMode.DOWN);
-        	qubitStates.add(new TextField("Probability of qubit "+(i+1)+" being 1: "+prob, 40));
+        	BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.DOWN);
+        	qubitStates.add(new TextField("Probability of qubit "+(i+1)+" being 1: "+prob, 30));
         	qubitStates.get(i).setEditable(false);
         }
+        
+        processComp = new ProcessComp(model);
         
         //... Layout the components.      
         pane = new JDesktopPane();
         
-        controls = new JInternalFrame();
+        controls = new JInternalFrame("Controls", true, true);
         backBtn = new JButton("Back");
         forwardBtn = new JButton("Forward");
         controls.add(backBtn, BorderLayout.WEST);
         controls.add(forwardBtn, BorderLayout.EAST);
         controls.add(new JLabel(model.teleOrError()), BorderLayout.NORTH);
-        count = new TextField((model.getPos()+1)+"/"+(model.maxPos()+1));
+        count = new TextField("Viewing stage: "+(model.getPos()+1)+"/"+(model.maxPos()+1));
         count.setEditable(false);
         controls.add(count, BorderLayout.SOUTH);
-        controls.setSize(400,100);
+        controls.setSize(200,150);
         controls.setLocation(0,0);
         controls.setVisible(true);
         
-        viewSimp = new JInternalFrame();
-        viewSimp.setLayout(new FlowLayout());
+        viewPanel = new JPanel();
+        viewPanel.setLayout(new BoxLayout(viewPanel, BoxLayout.PAGE_AXIS));
         for(int i = 0; i < states.size(); i++) {
-        	viewSimp.add(states.get(i));
-        }
-        viewSimp.setSize(500,400);
+        	viewPanel.add(states.get(i));
+		}
+        viewScroll = new JScrollPane(viewPanel);
+        viewSimp = new JInternalFrame("States", true, true);
+        viewSimp.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH; c.weightx = 1; c.weighty = 1;
+        viewSimp.getContentPane().add(viewScroll, c);
+        viewSimp.setSize(300,300);
         viewSimp.setLocation(000,200);
         viewSimp.setVisible(true);
         
-        qubitView = new JInternalFrame();
-        qubitView.setLayout(new FlowLayout());
+        qubitPanel = new JPanel();
+        qubitPanel.setLayout(new BoxLayout(qubitPanel, BoxLayout.PAGE_AXIS));
         for(int i = 0; i < qubitStates.size(); i++) {
-        	qubitView.add(qubitStates.get(i));
+        	qubitPanel.add(qubitStates.get(i));
         }
-        qubitView.setSize(500,400);
-        qubitView.setLocation(400,200);
+        qubitScroll = new JScrollPane(qubitPanel);
+        qubitView = new JInternalFrame("Qbit states", true, true);
+        qubitView.setLayout(new GridBagLayout());
+        GridBagConstraints d = new GridBagConstraints();
+        d.fill = GridBagConstraints.BOTH; d.weightx = 1; d.weighty = 1;
+        qubitView.getContentPane().add(qubitScroll, d);
+        qubitView.setSize(300,200);
+        qubitView.setLocation(400,50);
         qubitView.setVisible(true);
+        
+        processPanel = new JPanel();
+        processPanel.setLayout(new BorderLayout());
+        processPanel.add(processComp, BorderLayout.CENTER);
+        processPanel.setPreferredSize(processComp.getD());
+        processScroll = new JScrollPane(processPanel);
+        processView = new JInternalFrame("Process graphic", true, true);
+        processView.setLayout(new GridBagLayout());
+        GridBagConstraints e = new GridBagConstraints();
+        e.fill = GridBagConstraints.BOTH; e.weightx = 1; e.weighty = 1;
+        processView.getContentPane().add(processScroll, e);
+        processView.setSize(processView.getPreferredSize());
+        processView.setLocation(300,400);
+        processView.setVisible(true);
         
         pane.add(controls);
         pane.add(viewSimp);
         pane.add(qubitView);
+        pane.add(processView);
         
         //... finalize layout
         this.setVisible(true);
@@ -92,26 +129,27 @@ public class View extends JFrame {
         this.setSize(1000, 800);
         
         this.setTitle("Quantum process simulator");
-        // The window closing event should probably be passed to the 
-        // Controller in a real program, but this is a short example.
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
     
     public void updateState() {
     	//Controls
-    	count.setText((model.getPos()+1)+"/"+(model.maxPos()+1));
+    	count.setText("Viewing stage: "+(model.getPos()+1)+"/"+(model.maxPos()+1));
     	
     	//SimpView
     	for(int i = 0; i < states.size(); i++) {
-    		BigDecimal prob = BDround(model.getState()[i].prob()).setScale(5, RoundingMode.DOWN);
+    		BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
         	states.get(i).setText("Probability of state "+intToBin(i, model.getNum())+": "+prob);
     	}
     	
     	//Qbit view
     	for(int i = 0; i < qubitStates.size(); i++) {
-    		BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(5, RoundingMode.DOWN);
+    		BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.DOWN);
         	qubitStates.get(i).setText("Probability of qubit "+(i+1)+" being 1 is: "+prob);
     	}
+    	
+    	//Process view
+    	processView.repaint();
     }
     
     public void addBackListener(ActionListener back) {
@@ -136,7 +174,7 @@ public class View extends JFrame {
     }
     
     /**
-	 * Rounds a BigDecimal to 1, 0, 0.5, or 0.25 if it is close enough
+	 * Rounds a BigDecimal to 0, 0.25, -0.25, 0.5, -0.5, 1, or -1 if it is close enough
 	 * @param param The BigDecimal to be rounded
 	 * @return The rounded BigDecimal
 	 */
@@ -152,6 +190,15 @@ public class View extends JFrame {
 		}
 		if(BDcloseTo(param, 0.25)){
 			return new BigDecimal(0.25);
+		}
+		if(BDcloseTo(param, -1)){
+			return new BigDecimal(-1);
+		}
+		if(BDcloseTo(param, -0.5)){
+			return new BigDecimal(-0.5);
+		}
+		if(BDcloseTo(param, -0.25)){
+			return new BigDecimal(-0.25);
 		}
 		return param;
 	}
