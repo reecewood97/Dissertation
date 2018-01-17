@@ -11,6 +11,26 @@ public class Model {
 			new Instruction("Cnot",3,2), new Instruction("H",3), new Instruction("M",3),
 			new Instruction("M",2), new Instruction("Cnot",2,1), new Instruction("CZ",3,1)};
 	
+	private Instruction[] errorInstructions = {new Instruction("H",1), new Instruction("H",2),
+			new Instruction("H",3), new Instruction("Cnot",4,5), new Instruction("Cnot",4,6),
+			new Instruction("Cnot",3,4), new Instruction("Cnot",3,5), new Instruction("Cnot",3,7),
+			new Instruction("Cnot",2,4), new Instruction("Cnot",2,6), new Instruction("Cnot",2,7),
+			new Instruction("Cnot",1,5), new Instruction("Cnot",1,6), new Instruction("Cnot",1,7),
+			/*new Instruction("?",1)*/new Instruction("X",1), new Instruction("H",8), new Instruction("H",9),
+			new Instruction("H",10), new Instruction("H",11), new Instruction("H",12), new Instruction("H",13),
+			new Instruction("Cnot",8,1), new Instruction("Cnot",8,5), new Instruction("Cnot",8,6),
+			new Instruction("Cnot",8,7), new Instruction("Cnot",9,2), new Instruction("Cnot",9,4),
+			new Instruction("Cnot",9,6), new Instruction("Cnot",9,7), new Instruction("Cnot",10,3),
+			new Instruction("Cnot",10,4), new Instruction("Cnot",10,5), new Instruction("Cnot",10,7),
+			new Instruction("CZ",11,1), new Instruction("CZ",11,5), new Instruction("CZ",11,6),
+			new Instruction("CZ",11,7), new Instruction("CZ",12,2), new Instruction("CZ",12,4),
+			new Instruction("CZ",12,6), new Instruction("CZ",12,7), new Instruction("CZ",13,3),
+			new Instruction("CZ",13,4), new Instruction("CZ",13,5), new Instruction("CZ",13,7),
+			new Instruction("H",8), new Instruction("H",9), new Instruction("H",10), new Instruction("H",11),
+			new Instruction("H",12), new Instruction("H",13), new Instruction("M",8), new Instruction("M",9),
+			new Instruction("M",10), new Instruction("M",11), new Instruction("M",12), new Instruction("M",13),
+			new Instruction("X",1)};
+	
 	private int num;		//number of Qbits
 	private int dimension;	//number of possibles states
 	private Complex[] states;
@@ -20,6 +40,7 @@ public class Model {
 	private Instruction[] instructions;
 	private String teleOrError;
 	private RoundingMode rmode = RoundingMode.valueOf(1);
+	private Complex[] ancillas;
 
 	/**
 	 * Initiates a model with the state of all zero's
@@ -32,6 +53,10 @@ public class Model {
 		this.states[0] = new Complex(new BigDecimal(1), new BigDecimal(0));
 		for(int i = 1; i < dimension; i++) { //Initiates all Qbits to 0
 			this.states[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		}
+		ancillas = new Complex[6];
+		for(int i = 0; i < 6; i++) {
+			ancillas[i] = new Complex(new BigDecimal(0), new BigDecimal(0));
 		}
 		position = 0;
 	}
@@ -73,7 +98,7 @@ public class Model {
 	}
 	
 	/**
-	 * Increments the current position, to be used by controller
+	 * Increments the current position, to be used by controller, and updates the state of the process
 	 * @return The new position
 	 */
 	public int incPos() {
@@ -87,7 +112,23 @@ public class Model {
 			case "Cnot": Cnot(inst.getCon(),inst.getTar()); break;
 			case "M": M(inst.getTar()); break;
 			case "CZ": CZ(inst.getCon(), inst.getTar()); break;
-			default: System.out.println("Instruction unrecognised in incPos"); break;
+			case "X": X(inst.getTar()); break;
+			case "M0": anc(0); break;
+			case "M1": anc(1); break;
+			case "M2": anc(2); break;
+			case "N0": anc(3); break;
+			case "N1": anc(4); break;
+			case "N2": anc(5); break;
+			case "?": Random random = new Random(); int x = random.nextInt(21)+1;
+				if(x<8) {
+					X(x);
+				} else if(x<15) {
+					Y(x-7);
+				} else {
+					Z(x-14);
+				}
+				break;
+			default: System.out.println("Instruction " + in + " is unrecognised in incPos"); break;
 			}
 			position++;
 			process[position] = states;
@@ -111,6 +152,89 @@ public class Model {
 	 */
 	public int getNum() {
 		return num;
+	}
+	
+	/**
+	 * @return The values of the ancillas
+	 */
+	public Complex[] getAncillas() {
+		return ancillas;
+	}
+	
+	//For every ancilla; set qubit 8 to 0, measure values, set ancillas[i] to value.
+	public void anc(int op) {
+		double tar = 8;
+		Complex[] newstates = new Complex[dimension];
+		for(int i = 0; i < dimension; i++) {
+			newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		}
+		Complex prob0 = new Complex(new BigDecimal(0),new BigDecimal(0));
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				prob0 = prob0.add(states[i].mult(states[i]).mod());
+			}
+		}
+		BigDecimal p0 = prob0.getReal();
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				newstates[i] = new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(p0.doubleValue())), 20, rmode),
+					states[i].getImag().divide(new BigDecimal(Math.sqrt(p0.doubleValue())), 20, rmode));
+			} else {
+				if(p0.doubleValue()!=0) {
+					newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+				} else {
+					newstates[i - (int)Math.pow(2,tar-1)] = newstates[i].add(states[i]);
+				}
+			}
+		}
+		
+		int x = 0;
+		boolean loop = true;
+		double res = 0;
+		//Complex res = new Complex(new BigDecimal(0), new BigDecimal(0));
+		while(loop) {
+			if(newstates[x].prob().doubleValue()>0) {
+				switch(op) {
+				case 0: if((Math.floor (x/Math.pow(2,1-1))  %2)==1) {
+					res = (res+1)%2; //XOR the result with the value
+				}
+				if((Math.floor (x/Math.pow(2,5-1))  %2)==1) {
+					res = (res+1)%2;
+				}
+				if((Math.floor (x/Math.pow(2,6-1))  %2)==1) {
+					res = (res+1)%2;
+				}
+				if((Math.floor (x/Math.pow(2,7-1))  %2)==1) {
+					res = (res+1)%2;
+				}
+				break;
+				case 1: Cnot(2,8); Cnot(4,8); Cnot(6,8); Cnot(7,8); break;
+				case 2: Cnot(3,8); Cnot(4,8); Cnot(5,8); Cnot(7,8); break;
+				case 3: CZ(1,8); CZ(5,8); CZ(6,8); CZ(7,8); break;
+				case 4: CZ(2,8); CZ(4,8); CZ(6,8); CZ(7,8); break;
+				case 5: CZ(3,8); CZ(4,8); CZ(5,8); CZ(7,8); break;
+				}
+				loop = false;
+			}
+			x++;
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		
+		Complex fin = new Complex(new BigDecimal(0), new BigDecimal(0));
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,8-1))  %2)==1) { //For every state where that number would be 1
+				fin = fin.add(newstates[i]);
+			}
+		}
+		ancillas[op] = new Complex(new BigDecimal(Math.sqrt(res)), new BigDecimal(0));
+		for(int i = 0; i < ancillas.length; i++) {
+			System.out.println("ancilla "+i+" is: "+ancillas[i].prob().doubleValue());
+		}
+		
+		states = newstates;
 	}
 	
 	/**
@@ -164,6 +288,29 @@ public class Model {
 		process[7] = states;
 		CZ(3,1);
 		process[8] = states;
+	}
+	
+	/**
+	 * Initiates a state for error correction for a qubit of given state
+	 * @param a1is0 A complex number describing the chance of the qubit being zero
+	 * @param a1is1 A complex number describing the chance of the qubit being one
+	 * @throws Exception If the state has the wrong number of bits or if the values are not normalised
+	 */
+	public void errorInit(Complex a1is0, Complex a1is1) throws Exception {
+		if(num!=13) {
+			throw new Exception("errorInit called on wrong size of qbits, num is" + num + ", should be 13");
+		}
+		if(!(a1is0.mult(a1is0).mod().add(a1is1.mult(a1is1).mod()).getReal().doubleValue()>0.99999999999
+				&& a1is0.mult(a1is0).mod().add(a1is1.mult(a1is1).mod()).getReal().doubleValue()<1.000000001)) {
+			throw new Exception("errorInit did not receive normalised values");
+		}
+		process = new Complex[errorInstructions.length+1][dimension];
+		instructions = errorInstructions;
+		maxPos = errorInstructions.length;
+		teleOrError = "Error Correction";
+		states[0] = new Complex(a1is0.getReal(),a1is0.getImag()); //00000000
+		states[8] = new Complex(a1is1.getReal(),a1is1.getImag()); //00001000 (qubit 4 is the input)
+		process[0] = states;
 	}
 	
 	/**
@@ -255,6 +402,32 @@ public class Model {
 		System.out.println("Real is : "+fin.getReal());
 		System.out.println(fin.getReal().doubleValue()==1);
 		System.out.println();
+		states = newstates;
+	}
+	
+	/**
+	 * Implements a not gate.
+	 * @param target The target qubit
+	 */
+	public void X(int target) {
+		double tar = (double)target;
+		Complex[] newstates = new Complex[dimension];
+		for(int i = 0; i < dimension; i++) {
+			newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		}
+		for(int i = 0; i < dimension; i++) {
+			int x = i + (int)Math.pow(2,tar-1); //Increase to find state from zeros to ones
+			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				newstates[i] = newstates[i].add(new Complex(states[x].getReal(),states[x].getImag()));
+			} else {
+				newstates[i] = newstates[i].add(new Complex(states[y].getReal(),states[y].getImag()));
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
 		states = newstates;
 	}
 
@@ -360,13 +533,63 @@ public class Model {
 		double res = 0;
 		double res2 = 0;
 		for(int i = 0; i < dimension; i++) {
-			if((Math.floor (i/Math.pow(2,1-1))  %2)==1) { //For every state where that number would be 1
+			if((Math.floor (i/Math.pow(2,1-1)) %2)==1) { //For every state where that number would be 1
 				res2 = res2 + newstates[i].getReal().multiply(newstates[i].getReal()).doubleValue();
 				res = res + newstates[i].getImag().multiply(newstates[i].getImag()).doubleValue();
 			}
 		}
 		System.out.println("Final real state of b1 is: " + res2);
 		System.out.println("Final imag state of b1 is: " + res);
+		states = newstates;
+	}
+	
+	/**
+	 * Implements a Z gate
+	 * @param target The target qubit
+	 */
+	public void Z(int target) {
+		double tar = (double)target;
+		Complex[] newstates = new Complex[dimension];
+		for(int i = 0; i < dimension; i++) {
+			newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		}
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				newstates[i] = newstates[i].add(states[i]);
+			} else {
+				newstates[i] = newstates[i].sub(states[i]);
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		states = newstates;
+	}
+	
+	/**
+	 * Implements a Y gate
+	 * @param target The target qubit
+	 */
+	public void Y(int target) {
+		double tar = (double)target;
+		Complex[] newstates = new Complex[dimension];
+		for(int i = 0; i < dimension; i++) {
+			newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		}
+		for(int i = 0; i < dimension; i++) {
+			int x = i + (int)Math.pow(2,tar-1); //Increase to find state from zeros to ones
+			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				newstates[i] = newstates[i].add(new Complex(states[x].getImag().negate(),states[x].getReal()));
+			} else {
+				newstates[i] = newstates[i].add(new Complex(states[y].getImag(),states[y].getReal().negate()));
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
 		states = newstates;
 	}
 	

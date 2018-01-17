@@ -18,6 +18,9 @@ public class Controller {
         view.addBackListener(new BackListener());
     }
     
+    public void init() {
+    	
+    }
     
     ////////////////////////////////////////// inner class ForwardListener
     /** When the forward button is pressed

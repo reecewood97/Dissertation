@@ -1,5 +1,4 @@
 TODO LIST:
-Use 2D graphics to show process being performed.
 Implement error correction.
 Present states of Qbits graphically.
 

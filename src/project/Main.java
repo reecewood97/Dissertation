@@ -5,7 +5,7 @@ import java.math.RoundingMode;
 
 import javax.swing.*;
 
-public class FrameTest {
+public class Main {
 	
 	private static RoundingMode rmode = RoundingMode.valueOf(1);
 	
@@ -17,7 +17,7 @@ public class FrameTest {
 		String[] possibleValues = { "Teleportation", "Error Correction" };
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 		"Select the quantum process to be demonstrated", "Input", JOptionPane.INFORMATION_MESSAGE,
-		null, possibleValues, possibleValues[0]);
+		null, possibleValues, possibleValues[1]);
 		if(selectedValue == null){
 			System.exit(0);
 		}
@@ -43,7 +43,7 @@ public class FrameTest {
 				a1is1 = new Complex(new BigDecimal(1), new BigDecimal(0)); break;
 				
 			case "50/50": a1is0 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0));
-			a1is1 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0)); break;
+				a1is1 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0)); break;
 			
 			case "Other": try {
 				Complex[] input = complexInput(); 
@@ -66,11 +66,50 @@ public class FrameTest {
 			
 			View view = new View(model);
 			Controller controller = new Controller(model, view);
+			controller.init();
 			
 			view.setVisible(true);
 		} else {
-			System.out.println("Error Correction not implemented yet");
-			System.exit(0);
+			Model model      = new Model(13);
+			Object[] choices = { "Other", "50/50", "One", "Zero" };
+			Object defaultChoice = null;
+			String startState = null;
+			try {
+			startState = (String)choices[JOptionPane.showOptionDialog(null,
+					"Select an inital state for the qubit", "Inital state",
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, choices, defaultChoice)];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				System.exit(0);
+			}
+			Complex a1is0 = new Complex(new BigDecimal(1), new BigDecimal(0));
+			Complex a1is1 = new Complex(new BigDecimal(0), new BigDecimal(0));
+			switch(startState) {
+			case "Zero" : break;
+			
+			case "One"  : a1is0 = new Complex(new BigDecimal(0), new BigDecimal(0));
+				a1is1 = new Complex(new BigDecimal(1), new BigDecimal(0)); break;
+				
+			case "50/50": a1is0 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0));
+				a1is1 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0)); break;
+			
+			case "Other": try {
+				Complex[] input = complexInput(); 
+				a1is0 = input[0];
+				a1is1 = input[1];
+			} catch(NumberFormatException e) {
+				System.err.println("Did not enter parseable text");
+				System.exit(0);
+			} catch(ArithmeticException e){
+				System.err.println("Total probability summed to 0");
+				System.exit(0);
+			} break;
+			}
+			
+			model.errorInit(a1is0, a1is1);
+			View view = new View(model);
+			Controller controller = new Controller(model, view);
+			controller.init();
+			view.setVisible(true);
 		}
 
 	}
