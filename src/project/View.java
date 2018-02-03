@@ -55,6 +55,12 @@ public class View extends JFrame {
         }*/
         //TODO
         states = new ArrayList<TextField>();
+        /*int len = model.getState().length;
+        int num = model.getNum();
+    	if(model.teleOrError().equals("Error Correction")) {
+    		len = (int)Math.pow(2, 7);
+    		num = 7;
+    	}*/
         for(int i = 0; i < model.getState().length; i++) {
         	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
         	if(prob.doubleValue()>0) {
@@ -74,10 +80,15 @@ public class View extends JFrame {
         processComp = new ProcessComp(model);
         
         ancillaStates = new ArrayList<TextField>();
-        Complex[] ancillaValues = model.getAncillas();
-        for(int i = 0; i < ancillaValues.length; i++) {
-        	ancillaStates.add(new TextField(
-        			"Probability of ancilla "+ i +" being 1: "+ ancillaValues[i].prob().doubleValue(), 30));
+        String anc = "";
+        for(int i = 0; i < 6; i++) {
+        	if(i<3) {
+        		anc = "M";
+        	} else {
+        		anc = "N";
+        	}
+        	anc = anc + (i%3);
+        	ancillaStates.add(new TextField("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue(), 30));
         	ancillaStates.get(i).setEditable(false);
         }
         
@@ -109,8 +120,8 @@ public class View extends JFrame {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH; c.weightx = 1; c.weighty = 1;
         viewSimp.getContentPane().add(viewScroll, c);
-        viewSimp.setSize(300,300);
-        viewSimp.setLocation(000,200);
+        viewSimp.setSize(400,500);
+        viewSimp.setLocation(900,250);
         viewSimp.setVisible(true);
         
         
@@ -126,7 +137,7 @@ public class View extends JFrame {
         d.fill = GridBagConstraints.BOTH; d.weightx = 1; d.weighty = 1;
         qubitView.getContentPane().add(qubitScroll, d);
         qubitView.setSize(300,200);
-        qubitView.setLocation(300,50);
+        qubitView.setLocation(800,000);
         qubitView.setVisible(true);
         
         
@@ -140,8 +151,8 @@ public class View extends JFrame {
         GridBagConstraints e = new GridBagConstraints();
         e.fill = GridBagConstraints.BOTH; e.weightx = 1; e.weighty = 1;
         processView.getContentPane().add(processScroll, e);
-        processView.setSize(700,(int)processView.getPreferredSize().getHeight());
-        processView.setLocation(300,400);
+        processView.setSize(850,(int)processView.getPreferredSize().getHeight());
+        processView.setLocation(000,150);
         processView.setVisible(true);
         
         ancillaPanel = new JPanel();
@@ -155,8 +166,8 @@ public class View extends JFrame {
         GridBagConstraints f = new GridBagConstraints();
         f.fill = GridBagConstraints.BOTH; f.weightx = 1; f.weighty = 1;
         ancillaView.getContentPane().add(ancillaScroll, f);
-        ancillaView.setSize(300,200);
-        ancillaView.setLocation(700,50);
+        ancillaView.setSize(300,250);
+        ancillaView.setLocation(1100,000);
         ancillaView.setVisible(true);
         
         
@@ -171,7 +182,7 @@ public class View extends JFrame {
         //... finalize layout
         this.setVisible(true);
         this.setContentPane(pane);
-        this.setSize(1000, 800);
+        this.setSize(1400, 800);
         
         
         this.setTitle("Quantum process simulator");
@@ -188,7 +199,14 @@ public class View extends JFrame {
         	states.get(i).setText("Probability of state "+intToBin(i, model.getNum())+": "+prob);
     	}*/
     	//TODO
+    	if((model.getPos() < 14) || (model.getPos() > 50)) {
     	states = new ArrayList<TextField>();
+    	/*int len = model.getState().length;
+    	int num = model.getNum();
+    	if(model.teleOrError().equals("Error Correction")) {
+    		len = (int)Math.pow(2, 7);
+    		num = 7;
+    	}*/
         for(int i = 0; i < model.getState().length; i++) {
         	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
         	if(prob.doubleValue()>0) {
@@ -202,6 +220,7 @@ public class View extends JFrame {
         	viewPanel.add(states.get(i));
         }
         viewSimp.revalidate();
+    	}
     	
     	//Qbit view
     	for(int i = 0; i < qubitStates.size(); i++) {
@@ -213,10 +232,16 @@ public class View extends JFrame {
     	processView.repaint();
     	
     	//Ancilla view
-    	Complex[] ancillaValues = model.getAncillas();
-        for(int i = 0; i < ancillaValues.length; i++) {
-        	ancillaStates.get(i).setText(
-        			"Probability of ancilla "+ i +" being 1: "+ ancillaValues[i].prob().doubleValue());
+        String anc = "";
+        for(int i = 0; i < 6; i++) {
+        	if(i<3){
+        		anc = "M";
+        	}
+        	else {
+        		anc = "N";
+        	}
+        	anc = anc + (i%3);
+        	ancillaStates.get(i).setText("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue());
         }
     }
     

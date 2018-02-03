@@ -88,7 +88,7 @@ public class ProcessComp extends Component {
 				prevInst = inst;
 			}
 			g2.setColor(Color.WHITE);
-			if(!inst.equals("?")) {
+			if(!(inst.equals("?")||inst.equals("Correct"))) {
 				g2.fillRect(LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2), TopIndent+(target*LineSpace)-(BoxWidth/2),
 						BoxWidth, BoxWidth);
 			} else {
@@ -100,7 +100,7 @@ public class ProcessComp extends Component {
 			} else {
 				g2.setColor(Color.RED);
 			}
-			if(!inst.equals("?")) {
+			if(!(inst.equals("?")||inst.equals("Correct"))) {
 				g2.drawRect(LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2), TopIndent+(target*LineSpace)-(BoxWidth/2),
 						BoxWidth, BoxWidth);
 			} else {
@@ -118,6 +118,10 @@ public class ProcessComp extends Component {
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "X": g2.drawString("X", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
+			case "Y": g2.drawString("Y", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
+			case "Z": g2.drawString("Z", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "M0": g2.drawString("M0", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "M1": g2.drawString("M1", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
@@ -132,6 +136,21 @@ public class ProcessComp extends Component {
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "?": g2.drawString("?", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
+			case "Correct": g2.drawString("c", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+0)*LineSpace)+(BoxWidth/2));
+							g2.drawString("o", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+1)*LineSpace)+(BoxWidth/2)); 
+							g2.drawString("r", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+2)*LineSpace)+(BoxWidth/2));
+							g2.drawString("r", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+3)*LineSpace)+(BoxWidth/2)); 
+							g2.drawString("e", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+4)*LineSpace)+(BoxWidth/2));
+							g2.drawString("c", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+5)*LineSpace)+(BoxWidth/2)); 
+							g2.drawString("t", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
+					TopIndent+((target+6)*LineSpace)+(BoxWidth/2)); break;
+			case "": break;
 			default: System.out.println("Instruction unrecognised in ProcessComp.paint()"); break;
 			}
 			prev = control;

@@ -16,7 +16,7 @@ public class Model {
 			new Instruction("Cnot",3,4), new Instruction("Cnot",3,5), new Instruction("Cnot",3,7),
 			new Instruction("Cnot",2,4), new Instruction("Cnot",2,6), new Instruction("Cnot",2,7),
 			new Instruction("Cnot",1,5), new Instruction("Cnot",1,6), new Instruction("Cnot",1,7),
-			/*new Instruction("?",1)*/new Instruction("X",1), new Instruction("H",8), new Instruction("H",9),
+			new Instruction("?",1)/*new Instruction("Y",5)*/, new Instruction("H",8), new Instruction("H",9),
 			new Instruction("H",10), new Instruction("H",11), new Instruction("H",12), new Instruction("H",13),
 			new Instruction("Cnot",8,1), new Instruction("Cnot",8,5), new Instruction("Cnot",8,6),
 			new Instruction("Cnot",8,7), new Instruction("Cnot",9,2), new Instruction("Cnot",9,4),
@@ -29,7 +29,7 @@ public class Model {
 			new Instruction("H",8), new Instruction("H",9), new Instruction("H",10), new Instruction("H",11),
 			new Instruction("H",12), new Instruction("H",13), new Instruction("M",8), new Instruction("M",9),
 			new Instruction("M",10), new Instruction("M",11), new Instruction("M",12), new Instruction("M",13),
-			new Instruction("X",1)};
+			new Instruction("Correct",1), new Instruction("?",1)};
 	
 	private int num;		//number of Qbits
 	private int dimension;	//number of possibles states
@@ -97,6 +97,180 @@ public class Model {
 		return process[position];
 	}
 	
+	public void errorCorrect() {
+		boolean[] ancs = new boolean[6];
+		for(int i = 0; i < ancs.length; i++) {
+			ancs[i] = false;
+		}
+		for(int i = 0; i < 6; i++) {
+			ancs[i] = BDcloseTo(p(i+8),1);
+		}
+		if(!(ancs[0]||ancs[1]||ancs[2]||ancs[3]||ancs[4]||ancs[5])) { //All good
+			errorInstructions[errorInstructions.length-1] = new Instruction("",1); return;
+		}
+		if(!(ancs[0]||ancs[1]||ancs[2])) { //X noise
+			if(ancs[3]&&ancs[4]&&ancs[5]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",7); return;
+			}
+			if(ancs[3]&&ancs[4]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",6); return;
+			}
+			if(ancs[3]&&ancs[5]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",5); return;
+			}
+			if(ancs[4]&&ancs[5]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",4); return;
+			}
+			if(ancs[5]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",3); return;
+			}
+			if(ancs[4]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",2); return;
+			}
+			if(ancs[3]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("X",1); return;
+			}
+		}
+		if(!(ancs[3]||ancs[4]||ancs[5])) { //Z noise
+			if(ancs[0]&&ancs[1]&&ancs[2]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",7); return;
+			}
+			if(ancs[0]&&ancs[1]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",6); return;
+			}
+			if(ancs[0]&&ancs[2]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",5); return;
+			}
+			if(ancs[1]&&ancs[2]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",4); return;
+			}
+			if(ancs[2]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",3); return;
+			}
+			if(ancs[1]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",2); return;
+			}
+			if(ancs[0]) {
+				errorInstructions[errorInstructions.length-1] = new Instruction("Z",1); return;
+			}
+		}
+		if(ancs[0]&&ancs[1]&&ancs[2]&&ancs[3]&&ancs[4]&&ancs[5]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",7); return;
+		}
+		if(ancs[0]&&ancs[1]&&ancs[3]&&ancs[4]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",6); return;
+		}
+		if(ancs[0]&&ancs[2]&&ancs[3]&&ancs[5]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",5); return;
+		}
+		if(ancs[1]&&ancs[2]&&ancs[4]&&ancs[5]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",4); return;
+		}
+		if(ancs[2]&&ancs[5]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",3); return;
+		}
+		if(ancs[1]&&ancs[4]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",2); return;
+		}
+		if(ancs[0]&&ancs[3]) {
+			errorInstructions[errorInstructions.length-1] = new Instruction("Y",1); return;
+		}
+		errorInstructions[errorInstructions.length-1] = new Instruction("",1);
+	}
+	
+	public void Xnoise(int target, BigDecimal propChange, Complex[] newstates) {
+		BigDecimal propStay = new BigDecimal(1).subtract(propChange);
+		System.out.println("Xnoise on qubit "+target+", propChange is "+propChange);
+		propChange = sqrt(propChange, 64);
+		propStay = sqrt(propStay, 64);
+		Complex compChange = new Complex(propChange, new BigDecimal(0));
+		Complex compStay = new Complex(propStay, new BigDecimal(0));
+		double tar = (double)target;
+		
+		//Complex[] newstates = new Complex[dimension];
+		//for(int i = 0; i < dimension; i++) {
+		//	newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		//}
+		for(int i = 0; i < dimension; i++) {
+			int x = i + (int)Math.pow(2,tar-1); //Increase to find state from zeros to ones
+			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				//newstates[i] = newstates[i].add(states[i].mult(compStay));
+				newstates[i] = newstates[i].add(new Complex(states[x].getReal(),states[x].getImag()).mult(compChange));
+			} else {
+				//newstates[i] = newstates[i].add(states[i].mult(compStay));
+				newstates[i] = newstates[i].add(new Complex(states[y].getReal(),states[y].getImag()).mult(compChange));
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		//states = newstates;
+		
+	}
+	
+	public void Ynoise(int target, BigDecimal propChange, Complex[] newstates) {
+		BigDecimal propStay = new BigDecimal(1).subtract(propChange);
+		System.out.println("Ynoise on qubit "+target+", propChange is "+propChange);
+		propChange = sqrt(propChange, 64);
+		propStay = sqrt(propStay, 64);
+		Complex compChange = new Complex(propChange, new BigDecimal(0));
+		Complex compStay = new Complex(propStay, new BigDecimal(0));
+		double tar = (double)target;
+		
+		//Complex[] newstates = new Complex[dimension];
+		//for(int i = 0; i < dimension; i++) {
+		//	newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		//}
+		for(int i = 0; i < dimension; i++) {
+			int x = i + (int)Math.pow(2,tar-1); //Increase to find state from zeros to ones
+			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				//newstates[i] = newstates[i].add(states[i].mult(compStay));
+				newstates[x] = newstates[x].add(new Complex(states[i].getImag().negate(),
+						states[i].getReal()).mult(compChange));
+			} else {
+				//newstates[i] = newstates[i].add(states[i].mult(compStay));
+				newstates[y] = newstates[y].add(new Complex(states[i].getImag(),
+						states[i].getReal().negate()).mult(compChange));
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		//states = newstates;
+	}
+	
+	public void Znoise(int target, BigDecimal propChange, Complex[] newstates) {
+		BigDecimal propStay = new BigDecimal(1).subtract(propChange);
+		System.out.println("Znoise on qubit "+target+", propChange is "+propChange);
+		propChange = sqrt(propChange, 64);
+		propStay = sqrt(propStay, 64);
+		Complex compChange = new Complex(propChange, new BigDecimal(0));
+		Complex compStay = new Complex(propStay, new BigDecimal(0));
+		double tar = (double)target;
+		
+		//Complex[] newstates = new Complex[dimension];
+		//for(int i = 0; i < dimension; i++) {
+		//	newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
+		//}
+		for(int i = 0; i < dimension; i++) {
+			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
+				newstates[i] = newstates[i].add(states[i].mult(compChange));
+			} else {
+				//newstates[i] = newstates[i].add(states[i].mult(compStay));
+				newstates[i] = newstates[i].sub(states[i].mult(compChange));
+			}
+		}
+		
+		for(int i = 0; i < newstates.length; i++){
+			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
+		}
+		//states = newstates;
+	}
+	
 	/**
 	 * Increments the current position, to be used by controller, and updates the state of the process
 	 * @return The new position
@@ -113,21 +287,47 @@ public class Model {
 			case "M": M(inst.getTar()); break;
 			case "CZ": CZ(inst.getCon(), inst.getTar()); break;
 			case "X": X(inst.getTar()); break;
+			case "Y": Y(inst.getTar()); break;
+			case "Z": Z(inst.getTar()); break;
 			case "M0": anc(0); break;
 			case "M1": anc(1); break;
 			case "M2": anc(2); break;
 			case "N0": anc(3); break;
 			case "N1": anc(4); break;
 			case "N2": anc(5); break;
-			case "?": Random random = new Random(); int x = random.nextInt(21)+1;
-				if(x<8) {
-					X(x);
-				} else if(x<15) {
-					Y(x-7);
-				} else {
-					Z(x-14);
-				}
-				break;
+			case "Correct": errorCorrect(); break;
+			case "": break;
+			case "?": Random random = new Random();
+			BigDecimal[] amounts = new BigDecimal[22];
+			Complex[] newstates = new Complex[dimension];
+			for(int i = 0; i < dimension; i++) {
+				newstates[i] = new Complex(new BigDecimal(0), new BigDecimal(0));
+			}
+			amounts[0] = new BigDecimal(random.nextDouble()*20);
+			BigDecimal total = amounts[0];
+			for(int i = 1; i < 22; i++) {
+				amounts[i] = new BigDecimal(random.nextDouble());
+				total = total.add(amounts[i]);
+			}
+			for(int i = 0; i < 22; i++) {
+				amounts[i] = amounts[i].divide(total, 64, RoundingMode.HALF_UP); //12 13 14
+			}
+			//System.out.println(amounts[1].add(amounts[5]).add(amounts[6]).add(amounts[7]).add(amounts[8])
+			//		.add(amounts[12]).add(amounts[13]).add(amounts[14]));
+			for(int i = 0; i < dimension; i++) {
+				newstates[i] = newstates[i].add(states[i].mult(new Complex(sqrt(amounts[0], 64), new BigDecimal(0))));
+			}
+			for(int i = 1; i < 8; i++) {
+				Xnoise(i, amounts[i], newstates);
+			}
+			for(int i = 8; i < 15; i++) {
+				Ynoise(i-7, amounts[i], newstates);
+			}
+			for(int i = 15; i < 22; i++) {
+				Znoise(i-14, amounts[i], newstates);
+			}
+			states = newstates;
+			break;
 			default: System.out.println("Instruction " + in + " is unrecognised in incPos"); break;
 			}
 			position++;
@@ -328,17 +528,17 @@ public class Model {
 			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
 			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) { //For every state where that number would be 0
 				//0 -> 0
-				newstates[i] = newstates[i].add(new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(2)), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
+				newstates[i] = newstates[i].add(new Complex(states[i].getReal().divide(sqrt(new BigDecimal(2), 64), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
 				
 				//0 -> 1
-				newstates[x] = newstates[x].add(new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(2)), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
+				newstates[x] = newstates[x].add(new Complex(states[i].getReal().divide(sqrt(new BigDecimal(2), 64), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
 			}
 			else { //For every state where that number would be 1
 				//1 -> 1
-				newstates[i] = newstates[i].sub(new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(2)), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
+				newstates[i] = newstates[i].sub(new Complex(states[i].getReal().divide(sqrt(new BigDecimal(2), 64), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
 				
 				//1 -> 0
-				newstates[y] = newstates[y].add(new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(2)), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
+				newstates[y] = newstates[y].add(new Complex(states[i].getReal().divide(sqrt(new BigDecimal(2), 64), 20, rmode),states[i].getImag().divide(new BigDecimal(Math.sqrt(2)), 20, rmode)));
 			}
 		}
 		
@@ -346,7 +546,7 @@ public class Model {
 			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
 		}
 		
-		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
+		/*Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After H on "+target);
 		for(int i = 0; i < dimension; i++) {
 			Complex sqrd = newstates[i].mult(newstates[i]).mod();
@@ -355,7 +555,7 @@ public class Model {
 		}
 		System.out.println("Real is : "+fin.getReal());
 		System.out.println(fin.getReal().doubleValue()==1);
-		System.out.println();
+		System.out.println();*/
 		states = newstates;
 	}
 
@@ -392,7 +592,7 @@ public class Model {
 			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
 		}
 		
-		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
+		/*Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After Cnot on "+control+ ", " +target);
 		for(int i = 0; i < dimension; i++) {
 			Complex sqrd = newstates[i].mult(newstates[i]).mod();
@@ -401,7 +601,7 @@ public class Model {
 		}
 		System.out.println("Real is : "+fin.getReal());
 		System.out.println(fin.getReal().doubleValue()==1);
-		System.out.println();
+		System.out.println();*/
 		states = newstates;
 	}
 	
@@ -454,8 +654,8 @@ public class Model {
 		for(int i = 0; i < dimension; i++) {
 			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
 				if(is0) { //target is 0 in this state and measured as 0
-					newstates[i] = new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(p0.doubleValue())), 20, rmode),
-							states[i].getImag().divide(new BigDecimal(Math.sqrt(p0.doubleValue())), 20, rmode));
+					newstates[i] = new Complex(states[i].getReal().divide(sqrt(new BigDecimal(p0.doubleValue()), 64), 20, rmode),
+							states[i].getImag().divide(sqrt(new BigDecimal(p0.doubleValue()), 64), 20, rmode));
 				} else { //target is 0 in this state and measured as 1
 					newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
 				}
@@ -463,8 +663,8 @@ public class Model {
 				if(is0) { //target is 1 in this state and measured as 0
 					newstates[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
 				} else { //target is 1 in this state and measured as 1
-					newstates[i] = new Complex(states[i].getReal().divide(new BigDecimal(Math.sqrt(p1.doubleValue())), 20, rmode),
-							states[i].getImag().divide(new BigDecimal(Math.sqrt(p1.doubleValue())), 20, rmode));
+					newstates[i] = new Complex(states[i].getReal().divide(sqrt(new BigDecimal(p1.doubleValue()), 64), 20, rmode),
+							states[i].getImag().divide(sqrt(new BigDecimal(p1.doubleValue()), 64), 20, rmode));
 				}
 			}
 		}
@@ -473,7 +673,7 @@ public class Model {
 			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
 		}
 		
-		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
+		/*Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		System.out.println("After M on "+target);
 		for(int i = 0; i < dimension; i++) {
 			Complex sqrd = newstates[i].mult(newstates[i]).mod();
@@ -482,7 +682,7 @@ public class Model {
 		}
 		System.out.println("Real is : "+fin.getReal());
 		System.out.println(fin.getReal().doubleValue()==1);
-		System.out.println();
+		System.out.println();*/
 		states = newstates;
 	}
 	
@@ -517,7 +717,7 @@ public class Model {
 			newstates[i] = new Complex(BDround(newstates[i].getReal()),BDround(newstates[i].getImag()));
 		}
 		
-		Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
+		/*Complex fin = new Complex(new BigDecimal(0),new BigDecimal(0));
 		BigDecimal finImag = new BigDecimal(0);
 		System.out.println("After CZ on "+control+ ", " +target);
 		for(int i = 0; i < dimension; i++) {
@@ -539,7 +739,7 @@ public class Model {
 			}
 		}
 		System.out.println("Final real state of b1 is: " + res2);
-		System.out.println("Final imag state of b1 is: " + res);
+		System.out.println("Final imag state of b1 is: " + res);*/
 		states = newstates;
 	}
 	
@@ -581,9 +781,9 @@ public class Model {
 			int x = i + (int)Math.pow(2,tar-1); //Increase to find state from zeros to ones
 			int y = i - (int)Math.pow(2,tar-1); //Decrease to find state from ones to zeros
 			if((Math.floor (i/Math.pow(2,tar-1))  %2)==0) {
-				newstates[i] = newstates[i].add(new Complex(states[x].getImag().negate(),states[x].getReal()));
+				newstates[x] = newstates[x].add(new Complex(states[i].getImag().negate(),states[i].getReal()));
 			} else {
-				newstates[i] = newstates[i].add(new Complex(states[y].getImag(),states[y].getReal().negate()));
+				newstates[y] = newstates[y].add(new Complex(states[i].getImag(),states[i].getReal().negate()));
 			}
 		}
 		
@@ -631,6 +831,19 @@ public class Model {
 	 */
 	private static boolean BDcloseTo(BigDecimal dec, double doub) {
 		return (dec.doubleValue()>=(doub-0.0000000001) && dec.doubleValue()<=(doub+0.0000000001));
+	}
+	
+	public static BigDecimal sqrt(BigDecimal A, final int SCALE) {
+	    BigDecimal x0 = new BigDecimal("0");
+	    BigDecimal x1 = new BigDecimal(Math.sqrt(A.doubleValue()));
+	    while (!x0.equals(x1)) {
+	        x0 = x1;
+	        x1 = A.divide(x0, SCALE, BigDecimal.ROUND_HALF_UP);
+	        x1 = x1.add(x0);
+	        x1 = x1.divide(new BigDecimal(2), SCALE, BigDecimal.ROUND_HALF_UP);
+
+	    }
+	    return x1;
 	}
 	
 	
