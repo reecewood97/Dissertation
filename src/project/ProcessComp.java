@@ -22,7 +22,7 @@ public class ProcessComp extends Component {
 	
 	
 	public Dimension getD() {
-		return new Dimension(LeftIndent+(700),TopIndent+(num*LineSpace)); //TODO fudge this too
+		return new Dimension(975,TopIndent+(num*LineSpace));
 	}
 
 	public void paint(Graphics g) {
@@ -43,10 +43,10 @@ public class ProcessComp extends Component {
 		Font oldFont = g2.getFont();
 		g2.setFont(oldFont.deriveFont(oldFont.getSize()*fontInc));
 		
-		//Draw horizontal lines TODO fudge this when know how long they need to be
+		//Draw horizontal lines
 		for(int i = 0; i < num; i++) {
 			g2.drawLine(LeftIndent, TopIndent+(i*LineSpace),
-					LeftIndent+((processLength+1)*(BoxAndSpace)), TopIndent+(i*LineSpace));
+					LeftIndent+(18*BoxAndSpace), TopIndent+(i*LineSpace));
 		}
 		
 		int prev = -10;
@@ -121,18 +121,6 @@ public class ProcessComp extends Component {
 			case "Y": g2.drawString("Y", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "Z": g2.drawString("Z", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "M0": g2.drawString("M0", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "M1": g2.drawString("M1", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "M2": g2.drawString("M2", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "N0": g2.drawString("N0", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "N1": g2.drawString("N1", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
-					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
-			case "N2": g2.drawString("N2", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;
 			case "?": g2.drawString("?", LeftIndent+((x+1)*BoxAndSpace)-(BoxWidth/2),
 					TopIndent+(target*LineSpace)+(BoxWidth/2)); break;

@@ -1,6 +1,7 @@
 package project;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class Complex {
 	
@@ -37,6 +38,15 @@ public class Complex {
 	public Complex mult(Complex arg){
 		return new Complex(getReal().multiply(arg.getReal()).subtract(getImag().multiply(arg.getImag())),
 				getReal().multiply(arg.getImag()).add(getImag().multiply(arg.getReal())));
+	}
+	
+	public Complex div(Complex arg) {
+		Complex denom = arg.mult(arg.conj());
+		assert(denom.getImag().equals(new BigDecimal(0)));
+		BigDecimal denominator = denom.getReal();
+		Complex numer = this.mult(arg.conj());
+		return new Complex(numer.getReal().divide(denominator, 64, RoundingMode.HALF_UP),
+				numer.getImag().divide(denominator, 64, RoundingMode.HALF_UP));
 	}
 	
 	public Complex mod(){

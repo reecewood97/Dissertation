@@ -14,26 +14,31 @@ public class View extends JFrame {
     //... Components
     private JDesktopPane pane;
     
+    //Controls
     private JInternalFrame controls;
     private JButton forwardBtn;
     private JButton backBtn;
     private TextField count;
     
+    //View containing list of all states
     private JInternalFrame viewSimp;
     private JScrollPane viewScroll;
     private JPanel viewPanel;
     private ArrayList<TextField> states;
     
+    //View showing probability of each qubit
     private JInternalFrame qubitView;
     private JScrollPane qubitScroll;
     private JPanel qubitPanel;
     private ArrayList<TextField> qubitStates;
     
+    //View showing current progress through the process
     private JInternalFrame processView;
     private JScrollPane processScroll;
     private JPanel processPanel;
     private ProcessComp processComp;
     
+    //View showing probability of each ancilla (similar to qubit view)
     private JInternalFrame ancillaView;
     private JScrollPane ancillaScroll;
     private JPanel ancillaPanel;
@@ -47,22 +52,9 @@ public class View extends JFrame {
         this.model = model;
         
         //... Initialize components
-        /*states = new ArrayList<TextField>();
-        for(int i = 0; i < model.getState().length; i++) {
-        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
-        	states.add(new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30));
-        	states.get(i).setEditable(false);
-        }*/
-        //TODO
         states = new ArrayList<TextField>();
-        /*int len = model.getState().length;
-        int num = model.getNum();
-    	if(model.teleOrError().equals("Error Correction")) {
-    		len = (int)Math.pow(2, 7);
-    		num = 7;
-    	}*/
         for(int i = 0; i < model.getState().length; i++) {
-        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
+        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.HALF_DOWN);
         	if(prob.doubleValue()>0) {
         		TextField newText = new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30);
         		newText.setEditable(false);
@@ -72,7 +64,7 @@ public class View extends JFrame {
         
         qubitStates = new ArrayList<TextField>();
         for(int i = 0; i < model.getNum(); i++) {
-        	BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.DOWN);
+        	BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.HALF_DOWN);
         	qubitStates.add(new TextField("Probability of qubit "+(model.getNum()-i)+" being 1: "+prob, 30));
         	qubitStates.get(i).setEditable(false);
         }
@@ -121,7 +113,7 @@ public class View extends JFrame {
         c.fill = GridBagConstraints.BOTH; c.weightx = 1; c.weighty = 1;
         viewSimp.getContentPane().add(viewScroll, c);
         viewSimp.setSize(400,500);
-        viewSimp.setLocation(900,250);
+        viewSimp.setLocation(1000,250);
         viewSimp.setVisible(true);
         
         
@@ -151,8 +143,8 @@ public class View extends JFrame {
         GridBagConstraints e = new GridBagConstraints();
         e.fill = GridBagConstraints.BOTH; e.weightx = 1; e.weighty = 1;
         processView.getContentPane().add(processScroll, e);
-        processView.setSize(850,(int)processView.getPreferredSize().getHeight());
-        processView.setLocation(000,150);
+        processView.setSize(processView.getPreferredSize());
+        processView.setLocation(000,180);
         processView.setVisible(true);
         
         ancillaPanel = new JPanel();
@@ -194,21 +186,10 @@ public class View extends JFrame {
     	count.setText("Viewing stage: "+(model.getPos()+1)+"/"+(model.maxPos()+1));
     	
     	//SimpView
-    	/*for(int i = 0; i < states.size(); i++) {
-    		BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
-        	states.get(i).setText("Probability of state "+intToBin(i, model.getNum())+": "+prob);
-    	}*/
-    	//TODO
-    	if((model.getPos() < 14) || (model.getPos() > 50)) {
+    	if((model.getPos() < 16) || (model.getPos() > 50)) {
     	states = new ArrayList<TextField>();
-    	/*int len = model.getState().length;
-    	int num = model.getNum();
-    	if(model.teleOrError().equals("Error Correction")) {
-    		len = (int)Math.pow(2, 7);
-    		num = 7;
-    	}*/
         for(int i = 0; i < model.getState().length; i++) {
-        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.DOWN);
+        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.HALF_DOWN);
         	if(prob.doubleValue()>0) {
         		TextField newText = new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30);
         		newText.setEditable(false);
@@ -220,11 +201,17 @@ public class View extends JFrame {
         	viewPanel.add(states.get(i));
         }
         viewSimp.revalidate();
+    	} else {
+    		viewPanel.removeAll();
+    		TextField text = new TextField("Too many states to list!");
+    		text.setEditable(false);
+    		viewPanel.add(text);
+    		viewSimp.revalidate();
     	}
     	
     	//Qbit view
     	for(int i = 0; i < qubitStates.size(); i++) {
-    		BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.DOWN);
+    		BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.HALF_DOWN);
         	qubitStates.get(i).setText("Probability of qubit "+(qubitStates.size()-i)+" being 1 is: "+prob);
     	}
     	

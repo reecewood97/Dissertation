@@ -18,12 +18,13 @@ public class Controller {
         view.addBackListener(new BackListener());
     }
     
-    public void init() {
+    public void init() { //Just to get rid of that pesky warning
     	
     }
     
     ////////////////////////////////////////// inner class ForwardListener
-    /** When the forward button is pressed
+    /** 
+     * When the forward button is pressed
      */
     class ForwardListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
@@ -34,8 +35,8 @@ public class Controller {
     
     
     //////////////////////////////////////////// inner class BackListener
-    /**  1. Reset model.
-     *   2. Reset View.
+    /**  
+     * When the back button is pressed
      */    
     class BackListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {

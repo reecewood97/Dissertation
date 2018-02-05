@@ -17,17 +17,17 @@ public class Main {
 		String[] possibleValues = { "Teleportation", "Error Correction" };
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 		"Select the quantum process to be demonstrated", "Input", JOptionPane.INFORMATION_MESSAGE,
-		null, possibleValues, possibleValues[1]);
+		null, possibleValues, possibleValues[1]); //Request which process to run
 		if(selectedValue == null){
 			System.exit(0);
 		}
 		
-		if(selectedValue.equals(possibleValues[0])) {
+		if(selectedValue.equals(possibleValues[0])) { //Teleportation selected
 			Model model      = new Model(3);
 			Object[] choices = { "Other", "50/50", "One", "Zero" };
 			Object defaultChoice = null;
 			String startState = null;
-			try {
+			try { //Selection of initial state of qubit
 			startState = (String)choices[JOptionPane.showOptionDialog(null,
 					"Select an inital state for the qubit", "Inital state",
 					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, choices, defaultChoice)];
@@ -46,7 +46,7 @@ public class Main {
 				a1is1 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0)); break;
 			
 			case "Other": try {
-				Complex[] input = complexInput(); 
+				Complex[] input = complexInput(); //Arbitrary input
 				a1is0 = input[0];
 				a1is1 = input[1];
 			} catch(NumberFormatException e) {
@@ -58,23 +58,23 @@ public class Main {
 			} break;
 			}
 			//try {
-				model.teleInit(a1is0, a1is1);
+				model.teleInit(a1is0, a1is1); //Set up the model
 			/*} catch (Exception e) {
 				System.err.println("Normalisation failed");
 				System.exit(1);
 			}*/
 			
-			View view = new View(model);
+			View view = new View(model); //Initialise all of the components of the system
 			Controller controller = new Controller(model, view);
 			controller.init();
 			
 			view.setVisible(true);
 		} else {
-			Model model      = new Model(13);
+			Model model      = new Model(13); //Error correction selected
 			Object[] choices = { "Other", "50/50", "One", "Zero" };
 			Object defaultChoice = null;
 			String startState = null;
-			try {
+			try { //Request specification of initial state of input qubit
 			startState = (String)choices[JOptionPane.showOptionDialog(null,
 					"Select an inital state for the qubit", "Inital state",
 					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, choices, defaultChoice)];
@@ -93,7 +93,7 @@ public class Main {
 				a1is1 = new Complex(new BigDecimal(Math.sqrt(0.5)), new BigDecimal(0)); break;
 			
 			case "Other": try {
-				Complex[] input = complexInput(); 
+				Complex[] input = complexInput(); //Allows arbitrary input if desired
 				a1is0 = input[0];
 				a1is1 = input[1];
 			} catch(NumberFormatException e) {
@@ -105,7 +105,7 @@ public class Main {
 			} break;
 			}
 			
-			model.errorInit(a1is0, a1is1);
+			model.errorInit(a1is0, a1is1); //Set up all components of the system
 			View view = new View(model);
 			Controller controller = new Controller(model, view);
 			controller.init();
@@ -114,6 +114,11 @@ public class Main {
 
 	}
 	
+	/**
+	 * For when the user wants to input an arbitrary initial state for the input qubit
+	 * @return The two complex numbers describing the qubit
+	 * @throws NumberFormatException If the total probability is zero
+	 */
 	private static Complex[] complexInput() throws NumberFormatException {
 		JTextField r0Field = new JTextField(5);
 		JTextField i0Field = new JTextField(5);
@@ -133,12 +138,13 @@ public class Main {
 		myPanel.add(new JLabel("Imag(1):"));
 		myPanel.add(i1Field);
 
-		int result = JOptionPane.showConfirmDialog(null, myPanel, 
+		int result = JOptionPane.showConfirmDialog(null, myPanel, //Request input
 				"Enter relative probability magntiute", JOptionPane.OK_CANCEL_OPTION);
 		if (!(result == JOptionPane.OK_OPTION)) {
 			System.exit(0);
 		}
 		
+		//Parse them
 		BigDecimal r0 = new BigDecimal(Double.parseDouble(r0Field.getText()));
 		BigDecimal i0 = new BigDecimal(Double.parseDouble(i0Field.getText()));
 		BigDecimal r1 = new BigDecimal(Double.parseDouble(r1Field.getText()));
@@ -148,6 +154,7 @@ public class Main {
 			//Is this an error?
 		}
 		
+		//Normalise them so the sum of their squares is 1
 		BigDecimal totProb = r0.subtract(i0).add(r1.subtract(i1));
 		if(totProb.signum()==0){
 			
@@ -165,6 +172,7 @@ public class Main {
 		BigDecimal r1rt;
 		BigDecimal i1rt;
 		
+		//Square root the relative probabilities, but preserve the sign if it is negative
 		if(r0norm.signum()==-1){
 			r0norm = r0norm.negate();
 			r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
@@ -194,6 +202,7 @@ public class Main {
 			i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
 		}
 		
+		//Return the processed complex numbers
 		Complex[] ret = new Complex[2];
 		ret[0] = new Complex(r0rt, i0rt);
 		ret[1] = new Complex(r1rt, i1rt);

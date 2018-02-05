@@ -1,5 +1,5 @@
 TODO LIST:
-Fix unknown bug when Znoise is applied.
+Improve calculations.
 Improve graphical representation.
 
 :	M0	M1	M2	N0	N1	N2
