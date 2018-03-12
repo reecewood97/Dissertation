@@ -16,13 +16,12 @@ public class Controller {
         //... Add listeners to the view.
         view.addForwardListener(new ForwardListener());
         view.addBackListener(new BackListener());
+        view.addDecodeListener(new DecodeListener());
     }
     
-    public void init() { //Just to get rid of that pesky warning
-    	
-    }
+    public void init() {} //Just to get rid of that pesky warning	
     
-    ////////////////////////////////////////// inner class ForwardListener
+    // inner class ForwardListener
     /** 
      * When the forward button is pressed
      */
@@ -33,8 +32,14 @@ public class Controller {
         }
     }//end inner class ForwardListener
     
+    class DecodeListener implements ActionListener {
+    	public void actionPerformed(ActionEvent e) {
+    		model.decode();
+    		view.updateState();
+    	}
+    }
     
-    //////////////////////////////////////////// inner class BackListener
+    // inner class BackListener
     /**  
      * When the back button is pressed
      */    

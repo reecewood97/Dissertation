@@ -2,21 +2,24 @@ package project;
 
 import java.math.BigDecimal;
 
+//An old class for testing the model. Not needed now due to existence of the view
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		Model model = new Model(3);
-		model.teleInit(new Complex(new BigDecimal(Math.sqrt(0.5)),new BigDecimal(0)),
-				new Complex(new BigDecimal(Math.sqrt(0.7)),new BigDecimal(Math.sqrt(0.2)))); //a1 = 3, a2 = 2, b1 = 1
-		/*model.H(2);
-		model.Cnot(2,1);
-		model.Cnot(3,2);
-		model.H(3);
-		model.M(3);
-		model.M(2);
-		model.Cnot(2,1);
-		model.CZ(3,1);*/
+		Model model = new Model(9);
+		model.errorInit5(new Complex(new BigDecimal(1),new BigDecimal(0)),
+				new Complex(new BigDecimal(0),new BigDecimal(0)),true);
+		Complex[] orig = model.getState();
+		model.encode();
+		model.decode();
+		Complex[] dec = model.getState();
+		for(int i = 0; i < model.getDimension(); i++) {
+			if(!orig[i].equals(dec[i])) {
+				System.out.println(i);
+			}
+		}
 		System.out.println("done");
+
 	}
 	
 }

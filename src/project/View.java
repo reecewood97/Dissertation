@@ -20,6 +20,12 @@ public class View extends JFrame {
     private JButton backBtn;
     private TextField count;
     
+    //View for displaying the decoded qubit
+    private JInternalFrame viewDec;
+    private JButton decButton;
+    private TextField initial;
+    private TextField decoded;
+    
     //View containing list of all states
     private JInternalFrame viewSimp;
     private JScrollPane viewScroll;
@@ -64,24 +70,33 @@ public class View extends JFrame {
         
         qubitStates = new ArrayList<TextField>();
         for(int i = 0; i < model.getNum(); i++) {
-        	BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.HALF_DOWN);
-        	qubitStates.add(new TextField("Probability of qubit "+(model.getNum()-i)+" being 1: "+prob, 30));
-        	qubitStates.get(i).setEditable(false);
+        	BigDecimal prob = BDround(model.p(i+1)).setScale(6, RoundingMode.HALF_DOWN);
+        	TextField text = new TextField("Probability of qubit "+ (i+1) +" being 1: "+prob, 30);
+        	text.setEditable(false);
+        	qubitStates.add(text);
         }
         
         processComp = new ProcessComp(model);
         
         ancillaStates = new ArrayList<TextField>();
-        String anc = "";
-        for(int i = 0; i < 6; i++) {
-        	if(i<3) {
-        		anc = "M";
-        	} else {
-        		anc = "N";
+        if(model.teleOrError().equals("Error Correction 7")) {
+        	String anc = "";
+        	for(int i = 0; i < 6; i++) {
+        		if(i<3) {
+        			anc = "M";
+        		} else {
+        			anc = "N";
+        		}
+        		anc = anc + (i%3);
+        		ancillaStates.add(new TextField("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue(), 30));
+        		ancillaStates.get(i).setEditable(false);
         	}
-        	anc = anc + (i%3);
-        	ancillaStates.add(new TextField("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue(), 30));
-        	ancillaStates.get(i).setEditable(false);
+        } else {
+        	for(int i = 0; i < 4; i++) {
+        		String anc = "M"+i;
+        		ancillaStates.add(new TextField("Value of ancilla "+ anc + " is " + model.p(i+6).doubleValue(), 30));
+        		ancillaStates.get(i).setEditable(false);
+        	}
         }
         
         //... Layout the components.      
@@ -99,6 +114,25 @@ public class View extends JFrame {
         controls.setSize(200,150);
         controls.setLocation(0,0);
         controls.setVisible(true);
+        
+        viewDec = new JInternalFrame("Decoding", true, true);
+        decButton = new JButton("Decode");
+        viewDec.add(decButton, BorderLayout.NORTH);
+        initial = new TextField("Initial state is ("+model.getInitial()[0].getReal().doubleValue()+
+        		"+"+model.getInitial()[0].getImag().doubleValue()+"i) |0> + ("+
+        		model.getInitial()[1].getReal().doubleValue()+"+"+model.getInitial()[1].getImag().doubleValue()
+        		+"i) |1>");
+        initial.setEditable(false);
+        decoded = new TextField("Decoded state is ("+model.getDecoded()[0].getReal().doubleValue()+
+        		"+"+model.getDecoded()[0].getImag().doubleValue()+"i) |0> + ("+
+        		model.getDecoded()[1].getReal().doubleValue()+"+"+model.getDecoded()[1].getImag().doubleValue()
+        		+"i) |1>");
+        decoded.setEditable(false);
+        viewDec.add(initial, BorderLayout.CENTER);
+        viewDec.add(decoded, BorderLayout.SOUTH);
+        viewDec.setSize(600, 150);
+        viewDec.setLocation(200,000);
+        viewDec.setVisible(true);
         
         
         viewPanel = new JPanel();
@@ -120,7 +154,7 @@ public class View extends JFrame {
         qubitPanel = new JPanel();
         qubitPanel.setLayout(new BoxLayout(qubitPanel, BoxLayout.PAGE_AXIS));
         for(int i = 0; i < qubitStates.size(); i++) {
-        	qubitPanel.add(qubitStates.get(i));
+        	qubitPanel.add(qubitStates.get(qubitStates.size()-i-1)); //TODO
         }
         qubitScroll = new JScrollPane(qubitPanel);
         qubitView = new JInternalFrame("Qbit states", true, true);
@@ -147,6 +181,7 @@ public class View extends JFrame {
         processView.setLocation(000,180);
         processView.setVisible(true);
         
+        
         ancillaPanel = new JPanel();
         ancillaPanel.setLayout(new BoxLayout(ancillaPanel, BoxLayout.PAGE_AXIS));
         for(int i = 0; i < ancillaStates.size(); i++) {
@@ -167,7 +202,8 @@ public class View extends JFrame {
         pane.add(viewSimp);
         pane.add(qubitView);
         pane.add(processView);
-        if(model.teleOrError().equals("Error Correction")) {
+        if(model.teleOrError().equals("Error Correction 7") || model.teleOrError().equals("Error Correction 5")) {
+        	pane.add(viewDec);
         	pane.add(ancillaView);
         }
         
@@ -185,22 +221,34 @@ public class View extends JFrame {
     	//Controls
     	count.setText("Viewing stage: "+(model.getPos()+1)+"/"+(model.maxPos()+1));
     	
-    	//SimpView
-    	if((model.getPos() < 16) || (model.getPos() > 50)) {
-    	states = new ArrayList<TextField>();
-        for(int i = 0; i < model.getState().length; i++) {
-        	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.HALF_DOWN);
-        	if(prob.doubleValue()>0) {
-        		TextField newText = new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30);
-        		newText.setEditable(false);
-        		states.add(newText);
-        	}
-        }
-        viewPanel.removeAll();
-        for(int i = 0; i < states.size(); i++) {
-        	viewPanel.add(states.get(i));
-        }
-        viewSimp.revalidate();
+    	//viewDec
+    	decoded.setText("Decoded state is ("+model.getDecoded()[0].getReal().doubleValue()+
+        		"+"+model.getDecoded()[0].getImag().doubleValue()+"i) |0> + ("+
+        		model.getDecoded()[1].getReal().doubleValue()+"+"+model.getDecoded()[1].getImag().doubleValue()
+        		+"i) |1>");
+    	viewDec.revalidate();
+    	
+    	//SimpView TODO
+    	if(model.teleOrError().equals("Error Correction 7") && ((model.maxPos()-model.getPos() < 10) || (model.maxPos()-model.getPos() > 42)) ||
+    			(model.teleOrError().equals("Error Correction 5") && (model.maxPos()-model.getPos() < 9 || model.maxPos()-model.getPos() > 28))) {
+    		BigDecimal total = new BigDecimal(0);
+    		for(int i = 0; i < model.getState().length; i++) {
+    			total = total.add(model.getState()[i].prob());
+    		}
+    		states = new ArrayList<TextField>();
+    		for(int i = 0; i < model.getState().length; i++) {
+    			BigDecimal prob = BDround(model.getState()[i].prob().divide(total, 64, RoundingMode.HALF_DOWN)).setScale(6, RoundingMode.HALF_DOWN);
+    			if(prob.doubleValue()>0) {
+    				TextField newText = new TextField("Probability of state "+intToBin(i, model.getNum())+": "+prob,30);
+    				newText.setEditable(false);
+    				states.add(newText);
+    			}
+    		}
+    		viewPanel.removeAll();
+    		for(int i = 0; i < states.size(); i++) {
+    			viewPanel.add(states.get(i));
+    		}
+    		viewSimp.revalidate();
     	} else {
     		viewPanel.removeAll();
     		TextField text = new TextField("Too many states to list!");
@@ -211,24 +259,30 @@ public class View extends JFrame {
     	
     	//Qbit view
     	for(int i = 0; i < qubitStates.size(); i++) {
-    		BigDecimal prob = BDround(model.p(model.getNum()-i)).setScale(6, RoundingMode.HALF_DOWN);
-        	qubitStates.get(i).setText("Probability of qubit "+(qubitStates.size()-i)+" being 1 is: "+prob);
+    			BigDecimal prob = BDround(model.p(i+1)).setScale(6, RoundingMode.HALF_DOWN);
+    			qubitStates.get(i).setText("Probability of qubit "+ (i+1) +" being 1 is: "+prob);
     	}
     	
     	//Process view
     	processView.repaint();
     	
     	//Ancilla view
-        String anc = "";
-        for(int i = 0; i < 6; i++) {
-        	if(i<3){
-        		anc = "M";
+    	if(model.teleOrError().equals("Error Correction 7")) {
+        	String anc = "";
+        	for(int i = 0; i < 6; i++) {
+        		if(i<3) {
+        			anc = "M";
+        		} else {
+        			anc = "N";
+        		}
+        		anc = anc + (i%3);
+        		ancillaStates.get(i).setText("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue());
         	}
-        	else {
-        		anc = "N";
+        } else {
+        	for(int i = 0; i < 4; i++) {
+        		String anc = "M"+i;
+        		ancillaStates.get(i).setText("Value of ancilla "+ anc + " is " + model.p(i+6).doubleValue());
         	}
-        	anc = anc + (i%3);
-        	ancillaStates.get(i).setText("Value of ancilla "+ anc + " is " + model.p(i+8).doubleValue());
         }
     }
     
@@ -238,6 +292,10 @@ public class View extends JFrame {
     
     public void addForwardListener(ActionListener forward) {
         forwardBtn.addActionListener(forward);
+    }
+    
+    public void addDecodeListener(ActionListener decode) {
+    	decButton.addActionListener(decode);
     }
     
     private static String intToBin (int n, int numOfBits) {
