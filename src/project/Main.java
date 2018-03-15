@@ -9,20 +9,18 @@ public class Main {
 	
 	private static RoundingMode rmode = RoundingMode.valueOf(1);
 	
-	//... Create model, view, and controller.  They are
-	//    created once here and passed to the parts that
-	//    need them so there is only one copy of each.
 	public static void main(String[] args) throws Exception {
 		
-		String[] possibleValues = { "Teleportation", "5 Qubit Error Correction", "7 Qubit Error Correction" };
+		String[] possibleValues = { "Teleportation", "7 Qubit Error Correction", "5 Qubit Error Correction" };
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 		"Select the quantum process to be demonstrated", "Input", JOptionPane.INFORMATION_MESSAGE,
-		null, possibleValues, possibleValues[1]); //Request which process to run
+		null, possibleValues, possibleValues[2]); //Request which process to run
 		if(selectedValue == null){
 			System.exit(0);
 		}
 		
 		if(selectedValue.equals(possibleValues[0])) { //Teleportation selected
+			
 			Model model      = new Model(3);
 			Object[] choices = { "Other", "50/50", "One", "Zero" };
 			Object defaultChoice = null;
@@ -57,19 +55,15 @@ public class Main {
 				System.exit(0);
 			} break;
 			}
-			//try {
-				model.teleInit(a1is0, a1is1); //Set up the model
-			/*} catch (Exception e) {
-				System.err.println("Normalisation failed");
-				System.exit(1);
-			}*/
 			
+			model.teleInit(a1is0, a1is1); //Set up the model
 			View view = new View(model); //Initialise all of the components of the system
 			Controller controller = new Controller(model, view);
 			controller.init();
-			
 			view.setVisible(true);
-		} else if(selectedValue.equals(possibleValues[2])) { //7 Qubit Error Correction selected
+			
+		} else if(selectedValue.equals(possibleValues[1])) { //7 Qubit Error Correction selected
+			
 			Model model      = new Model(13);
 			Object[] choices = { "Other", "50/50", "One", "Zero" };
 			Object defaultChoice = null;
@@ -108,7 +102,7 @@ public class Main {
 			String enc = null;
 			Object [] encChoices = { "Yes", "No" };
 			Object encDefaultChoice = null;
-			try { //Request specification of initial state of input qubit
+			try { //Request whether to replace encoding with one step
 				enc = (String)encChoices[JOptionPane.showOptionDialog(null,
 						"Would you like to skip the encoding stage?", "Encoding option",
 						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, encChoices, encDefaultChoice)];
@@ -121,7 +115,9 @@ public class Main {
 			Controller controller = new Controller(model, view);
 			controller.init();
 			view.setVisible(true);
-		} else if(selectedValue.equals(possibleValues[1])) {
+			
+		} else if(selectedValue.equals(possibleValues[2])) {
+			
 			Model model      = new Model(9);
 			Object[] choices = { "Other", "50/50", "One", "Zero" };
 			Object defaultChoice = null;
@@ -160,7 +156,7 @@ public class Main {
 			String enc = null;
 			Object [] encChoices = { "Yes", "No" };
 			Object encDefaultChoice = null;
-			try { //Request specification of initial state of input qubit
+			try { //Request whether to replace encoding with one step
 				enc = (String)encChoices[JOptionPane.showOptionDialog(null,
 						"Would you like to skip the encoding stage?", "Encoding option",
 						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, encChoices, encDefaultChoice)];
@@ -212,7 +208,7 @@ public class Main {
 		BigDecimal r1;
 		BigDecimal i1;
 		
-		//Parse them
+		//Parse them. If parsing fails, replace with 0
 		try{
 			r0 = new BigDecimal(Double.parseDouble(r0Field.getText()));
 		} catch(NumberFormatException e) {
@@ -243,41 +239,6 @@ public class Main {
 		BigDecimal i0norm = i0.divide(totProbRoot, 20, rmode);
 		BigDecimal r1norm = r1.divide(totProbRoot, 20, rmode);
 		BigDecimal i1norm = i1.divide(totProbRoot, 20, rmode);
-		
-		/*BigDecimal r0rt;
-		BigDecimal i0rt;
-		BigDecimal r1rt;
-		BigDecimal i1rt;
-		
-		//Square root the relative probabilities, but preserve the sign if it is negative
-		if(r0norm.signum()==-1){
-			r0norm = r0norm.negate();
-			r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
-			r0rt = r0rt.negate();
-		} else {
-			r0rt = new BigDecimal(Math.sqrt(r0norm.doubleValue()));
-		}
-		if(i0norm.signum()==-1){
-			i0norm = i0norm.negate();
-			i0rt = new BigDecimal(Math.sqrt(i0norm.doubleValue()));
-			i0rt = i0rt.negate();
-		} else {
-			i0rt = new BigDecimal(Math.sqrt(i0norm.doubleValue()));
-		}
-		if(r1norm.signum()==-1){
-			r1norm = r1norm.negate();
-			r1rt = new BigDecimal(Math.sqrt(r1norm.doubleValue()));
-			r1rt = r1rt.negate();
-		} else {
-			r1rt = new BigDecimal(Math.sqrt(r1norm.doubleValue()));
-		}
-		if(i1norm.signum()==-1){
-			i1norm = i1norm.negate();
-			i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
-			i1rt = i1rt.negate();
-		} else {
-			i1rt = new BigDecimal(Math.sqrt(i1norm.doubleValue()));
-		}*/
 		
 		//Return the processed complex numbers
 		Complex[] ret = new Complex[2];

@@ -126,8 +126,8 @@ public class Complex {
     }
 	
 	public boolean equals(Complex other) {
-		return((real.subtract(other.getReal()).abs().doubleValue()<0.000001) && 
-				(imag.subtract(other.getImag()).abs().doubleValue()<0.0000001));
+		return((real.subtract(other.getReal()).abs().doubleValue()<0.00000001) && 
+				(imag.subtract(other.getImag()).abs().doubleValue()<0.00000001));
 	}
 
 }

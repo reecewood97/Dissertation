@@ -25,6 +25,7 @@ public class View extends JFrame {
     private JButton decButton;
     private TextField initial;
     private TextField decoded;
+    private TextField lambda;
     
     //View containing list of all states
     private JInternalFrame viewSimp;
@@ -52,12 +53,11 @@ public class View extends JFrame {
     
     private Model model;
     
-    //======================================================= constructor
     View(Model model) {
-        //... Set up the logic
+    	
         this.model = model;
         
-        //... Initialize components
+        //Prepare the components
         states = new ArrayList<TextField>();
         for(int i = 0; i < model.getState().length; i++) {
         	BigDecimal prob = BDround(model.getState()[i].prob()).setScale(6, RoundingMode.HALF_DOWN);
@@ -99,7 +99,7 @@ public class View extends JFrame {
         	}
         }
         
-        //... Layout the components.      
+        //Layout the components  
         pane = new JDesktopPane();
         
         controls = new JInternalFrame("Controls", true, true);
@@ -117,7 +117,7 @@ public class View extends JFrame {
         
         viewDec = new JInternalFrame("Decoding", true, true);
         decButton = new JButton("Decode");
-        viewDec.add(decButton, BorderLayout.NORTH);
+        viewDec.add(decButton, BorderLayout.EAST);
         initial = new TextField("Initial state is ("+model.getInitial()[0].getReal().doubleValue()+
         		"+"+model.getInitial()[0].getImag().doubleValue()+"i) |0> + ("+
         		model.getInitial()[1].getReal().doubleValue()+"+"+model.getInitial()[1].getImag().doubleValue()
@@ -128,7 +128,10 @@ public class View extends JFrame {
         		model.getDecoded()[1].getReal().doubleValue()+"+"+model.getDecoded()[1].getImag().doubleValue()
         		+"i) |1>");
         decoded.setEditable(false);
-        viewDec.add(initial, BorderLayout.CENTER);
+        lambda = new TextField("States are equivalent. Lambda is 1 + 0i");
+        lambda.setEditable(false);
+        viewDec.add(lambda, BorderLayout.CENTER);
+        viewDec.add(initial, BorderLayout.NORTH);
         viewDec.add(decoded, BorderLayout.SOUTH);
         viewDec.setSize(600, 150);
         viewDec.setLocation(200,000);
@@ -197,6 +200,56 @@ public class View extends JFrame {
         ancillaView.setLocation(1100,000);
         ancillaView.setVisible(true);
         
+        if(model.teleOrError().equals("Error Correction 7")) {
+        	
+        	//set positions and sizes
+        	controls.setLocation(-9,-3);
+        	controls.setSize(210,181);
+        	viewDec.setLocation(180,-2);
+        	viewDec.setSize(893,181);
+        	viewSimp.setLocation(1053,-1);
+        	viewSimp.setSize(347,779);
+        	qubitView.setLocation(758,400);
+        	qubitView.setSize(318,378);
+        	processView.setLocation(-9,160);
+        	processView.setSize(790,620);
+        	ancillaView.setLocation(759,160);
+        	ancillaView.setSize(316,261);
+        	
+        } else if(model.teleOrError().equals("Error Correction 5")) {
+        	
+        	//set positions and sizes
+        	controls.setLocation(-9,-3);
+        	controls.setSize(209,187);
+        	viewDec.setLocation(181,-2);
+        	viewDec.setSize(908,186);
+        	viewSimp.setLocation(1085,253);
+        	viewSimp.setSize(315,525);
+        	qubitView.setLocation(1085,-1);
+        	qubitView.setSize(312,268);
+        	processView.setLocation(1,333);
+        	processView.setSize(1089,445);
+        	ancillaView.setLocation(753,168);
+        	ancillaView.setSize(337,182);
+        	
+        } else {
+        	
+        	//set positions and sizes
+        	controls.setLocation(-9,-3);
+        	controls.setSize(209,187);
+        	viewDec.setLocation(181,-2);
+        	viewDec.setSize(908,186);
+        	viewSimp.setLocation(1085,253);
+        	viewSimp.setSize(315,525);
+        	qubitView.setLocation(1085,-1);
+        	qubitView.setSize(312,268);
+        	processView.setLocation(1,333);
+        	processView.setSize(1089,445);
+        	ancillaView.setLocation(753,168);
+        	ancillaView.setSize(337,182);
+        	
+        }
+        
         
         pane.add(controls);
         pane.add(viewSimp);
@@ -217,20 +270,52 @@ public class View extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
     
+    /**
+     * To be used by the controller when a button is pressed
+     * Updates the view with information from reading the model
+     */
     public void updateState() {
+    	
     	//Controls
     	count.setText("Viewing stage: "+(model.getPos()+1)+"/"+(model.maxPos()+1));
     	
     	//viewDec
-    	decoded.setText("Decoded state is ("+model.getDecoded()[0].getReal().doubleValue()+
-        		"+"+model.getDecoded()[0].getImag().doubleValue()+"i) |0> + ("+
-        		model.getDecoded()[1].getReal().doubleValue()+"+"+model.getDecoded()[1].getImag().doubleValue()
-        		+"i) |1>");
-    	viewDec.revalidate();
+    	Complex[] decode = model.getDecoded();
+    	Complex[] init = model.getInitial();
+    	Complex l1 = decode[0];
+    	Complex l2 = decode[1];
+    	try {
+    		l1 = decode[0].div(init[0]);
+    		l2 = decode[1].div(init[1]);
+    	} catch(ArithmeticException e) {
+    		if(decode[0].equals(new Complex(new BigDecimal(0), new BigDecimal(0))) &&
+    				init[0].equals(new Complex(new BigDecimal(0), new BigDecimal(0)))) {
+    			l1 = decode[1].div(init[1]);
+    		}
+    		if(decode[1].equals(new Complex(new BigDecimal(0), new BigDecimal(0))) &&
+    				init[1].equals(new Complex(new BigDecimal(0), new BigDecimal(0)))) {
+    			l2 = decode[0].div(init[0]);
+    		}
+    	}
+    	double bada = Math.abs((l1.getReal().doubleValue()-l2.getReal().doubleValue()));
+    	double bing = Math.abs((l1.getImag().doubleValue()-l2.getImag().doubleValue()));
+    	if(bada<0.000000001 && bing<0.0000000001) {
+    			lambda.setText("States are equivalent. Lambda is "+
+    					l1.getReal().setScale(20, RoundingMode.HALF_DOWN)+
+    					" + "+l1.getImag().setScale(20, RoundingMode.HALF_DOWN)+"i");
+    	} else {
+    		lambda.setText("States not equivalent");
+   		}
+   		decoded.setText("Decoded state is ("+model.getDecoded()[0].getReal().doubleValue()+
+   				"+"+model.getDecoded()[0].getImag().doubleValue()+"i) |0> + ("+
+   				model.getDecoded()[1].getReal().doubleValue()+"+"+model.getDecoded()[1].getImag().doubleValue()
+   				+"i) |1>");
+   		//viewDec.revalidate();
     	
     	//SimpView TODO
-    	if(model.teleOrError().equals("Error Correction 7") && ((model.maxPos()-model.getPos() < 10) || (model.maxPos()-model.getPos() > 42)) ||
-    			(model.teleOrError().equals("Error Correction 5") && (model.maxPos()-model.getPos() < 9 || model.maxPos()-model.getPos() > 28))) {
+    	if((model.teleOrError().equals("Error Correction 7") && ((model.maxPos()-model.getPos() < 10) || (model.maxPos()-model.getPos() > 42))) ||
+    			(model.teleOrError().equals("Error Correction 5") && (model.maxPos()-model.getPos() < 9 || model.maxPos()-model.getPos() > 28)) ||
+    			(model.teleOrError().equals("Teleportation"))) {
     		BigDecimal total = new BigDecimal(0);
     		for(int i = 0; i < model.getState().length; i++) {
     			total = total.add(model.getState()[i].prob());
@@ -260,7 +345,7 @@ public class View extends JFrame {
     	//Qbit view
     	for(int i = 0; i < qubitStates.size(); i++) {
     			BigDecimal prob = BDround(model.p(i+1)).setScale(6, RoundingMode.HALF_DOWN);
-    			qubitStates.get(i).setText("Probability of qubit "+ (i+1) +" being 1 is: "+prob);
+    			qubitStates.get(i).setText("Probability of qubit "+ (i+1) +" being 1: "+prob);
     	}
     	
     	//Process view
@@ -286,18 +371,30 @@ public class View extends JFrame {
         }
     }
     
+    /**
+     * Adds an actionListener to the back button
+     */
     public void addBackListener(ActionListener back) {
         backBtn.addActionListener(back);
     }
     
+    /**
+     * Adds an actionListener to the forward button
+     */
     public void addForwardListener(ActionListener forward) {
         forwardBtn.addActionListener(forward);
     }
     
+    /**
+     * Adds an actionListener to the decode button
+     */
     public void addDecodeListener(ActionListener decode) {
     	decButton.addActionListener(decode);
     }
     
+    /**
+     * Converts an integer to binary representation
+     */
     private static String intToBin (int n, int numOfBits) {
     	String binary = "";
     	for(int i = 0; i < numOfBits; ++i, n/=2) {

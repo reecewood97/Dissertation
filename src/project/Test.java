@@ -2,22 +2,26 @@ package project;
 
 import java.math.BigDecimal;
 
-//An old class for testing the model. Not needed now due to existence of the view
+//A class for debugging purposes.
 public class Test {
 
 	public static void main(String[] args) throws Exception {
 		Model model = new Model(9);
-		model.errorInit5(new Complex(new BigDecimal(1),new BigDecimal(0)),
-				new Complex(new BigDecimal(0),new BigDecimal(0)),true);
-		Complex[] orig = model.getState();
-		model.encode();
+		model.errorInit5(new Complex(new BigDecimal(Math.sqrt(0.5)),new BigDecimal(0)),
+				new Complex(new BigDecimal(Math.sqrt(0.5)),new BigDecimal(0)),false);
+		model.incPos();
+		model.incPos();
 		model.decode();
-		Complex[] dec = model.getState();
-		for(int i = 0; i < model.getDimension(); i++) {
-			if(!orig[i].equals(dec[i])) {
-				System.out.println(i);
-			}
-		}
+		Complex[] init = model.getInitial();
+		Complex[] dec = model.getDecoded();
+		System.out.println("Initial state is ("+init[0].getReal().doubleValue()+
+        		"+"+init[0].getImag().doubleValue()+"i) |0> + ("+
+        		init[1].getReal().doubleValue()+"+"+init[1].getImag().doubleValue()
+        		+"i) |1>");
+		System.out.println("Decoded state is ("+dec[0].getReal().doubleValue()+
+        		"+"+dec[0].getImag().doubleValue()+"i) |0> + ("+
+        		dec[1].getReal().doubleValue()+"+"+dec[1].getImag().doubleValue()
+        		+"i) |1>");
 		System.out.println("done");
 
 	}

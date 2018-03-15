@@ -63,21 +63,21 @@ public class Model {
 			new Instruction("Correct",1), new Instruction("?",1)};
 	
 	//Instructions for the 7 qubit error correction protocol, without encoding
-		private Instruction[] errorInstructions7trunc = {new Instruction("enc",1),
-				new Instruction("?",1), new Instruction("H",8), new Instruction("H",9),
-				new Instruction("H",10), new Instruction("H",11), new Instruction("H",12), new Instruction("H",13),
-				new Instruction("Cnot",8,1), new Instruction("Cnot",8,5), new Instruction("Cnot",8,6),
-				new Instruction("Cnot",8,7), new Instruction("Cnot",9,2), new Instruction("Cnot",9,4),
-				new Instruction("Cnot",9,6), new Instruction("Cnot",9,7), new Instruction("Cnot",10,3),
-				new Instruction("Cnot",10,4), new Instruction("Cnot",10,5), new Instruction("Cnot",10,7),
-				new Instruction("CZ",11,1), new Instruction("CZ",11,5), new Instruction("CZ",11,6),
-				new Instruction("CZ",11,7), new Instruction("CZ",12,2), new Instruction("CZ",12,4),
-				new Instruction("CZ",12,6), new Instruction("CZ",12,7), new Instruction("CZ",13,3),
-				new Instruction("CZ",13,4), new Instruction("CZ",13,5), new Instruction("CZ",13,7),
-				new Instruction("H",8), new Instruction("H",9), new Instruction("H",10), new Instruction("H",11),
-				new Instruction("H",12), new Instruction("H",13), new Instruction("M",8), new Instruction("M",9),
-				new Instruction("M",10), new Instruction("M",11), new Instruction("M",12), new Instruction("M",13),
-				new Instruction("Correct",1), new Instruction("?",1)};
+	private Instruction[] errorInstructions7trunc = {new Instruction("enc",1),
+			new Instruction("?",1), new Instruction("H",8), new Instruction("H",9),
+			new Instruction("H",10), new Instruction("H",11), new Instruction("H",12), new Instruction("H",13),
+			new Instruction("Cnot",8,1), new Instruction("Cnot",8,5), new Instruction("Cnot",8,6),
+			new Instruction("Cnot",8,7), new Instruction("Cnot",9,2), new Instruction("Cnot",9,4),
+			new Instruction("Cnot",9,6), new Instruction("Cnot",9,7), new Instruction("Cnot",10,3),
+			new Instruction("Cnot",10,4), new Instruction("Cnot",10,5), new Instruction("Cnot",10,7),
+			new Instruction("CZ",11,1), new Instruction("CZ",11,5), new Instruction("CZ",11,6),
+			new Instruction("CZ",11,7), new Instruction("CZ",12,2), new Instruction("CZ",12,4),
+			new Instruction("CZ",12,6), new Instruction("CZ",12,7), new Instruction("CZ",13,3),
+			new Instruction("CZ",13,4), new Instruction("CZ",13,5), new Instruction("CZ",13,7),
+			new Instruction("H",8), new Instruction("H",9), new Instruction("H",10), new Instruction("H",11),
+			new Instruction("H",12), new Instruction("H",13), new Instruction("M",8), new Instruction("M",9),
+			new Instruction("M",10), new Instruction("M",11), new Instruction("M",12), new Instruction("M",13),
+			new Instruction("Correct",1), new Instruction("?",1)};
 	
 	private int num;			//number of Qbits
 	private int dimension;		//number of possible states
@@ -88,8 +88,8 @@ public class Model {
 	private Instruction[] instructions;//instructions for the current process
 	private String teleOrError;	//teleportation or error correction?
 	private RoundingMode rmode = RoundingMode.valueOf(1);//for consistent rounding
-	private Complex[] decoded;
-	private Complex[] initial;
+	private Complex[] decoded;	//The decoded state, for use in error correcting codes
+	private Complex[] initial;	//The initial state for comparison, for use in error correcting codes
 
 	/**
 	 * Initiates a model with the state of all zero's
@@ -99,8 +99,8 @@ public class Model {
 		this.num = num;
 		this.dimension = (int)Math.pow(2,num);
 		this.states = new Complex[this.dimension];
-		this.states[0] = new Complex(new BigDecimal(1), new BigDecimal(0));
-		for(int i = 1; i < dimension; i++) { //Initiates all Qbits to 0
+		this.states[0] = new Complex(new BigDecimal(1), new BigDecimal(0)); //All zero state has probability 1
+		for(int i = 1; i < dimension; i++) { //Initiates all other states to 0
 			this.states[i] = new Complex(new BigDecimal(0),new BigDecimal(0));
 		}
 		decoded = new Complex[2];
@@ -173,13 +173,17 @@ public class Model {
 		return process[position];
 	}
 	
+	/**
+	 * Read off the values of the ancillas and replace the final instruction with the one necessary
+	 * to correct whatever error has taken place
+	 */
 	public void errorCorrect5() {
 		boolean[] ancs = new boolean[4];
 		for(int i = 0; i < ancs.length; i++) {
 			ancs[i] = false;
 		}
 		for(int i = 0; i < 4; i++) { //Set booleans to true if corresponding qubit is 1
-			ancs[i] = BDcloseTo(p(i+6),1);
+			ancs[i] = !BDcloseTo(p(i+6),1);
 		}
 		if(ancs[0]&&ancs[1]&&ancs[2]&&ancs[3]) { //All good, enter dummy instruction
 			errorInstructions5[errorInstructions5.length-1] = new Instruction("",1);
@@ -363,10 +367,14 @@ public class Model {
 		errorInstructions7[errorInstructions7.length-1] = new Instruction("",1);
 	}
 	
+	/**
+	 * Applies a partial X gate to a qubit
+	 * @param target		The target qubit
+	 * @param propChange	The proportion of the gate to apply
+	 * @param newstates		The states to contribute to
+	 */
 	public void Xnoise(int target, Complex propChange, Complex[] newstates) {
 		System.out.println("Xnoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
-		//propChange = sqrt(propChange, 64);
-		//Complex compChange = new Complex(propChange, new BigDecimal(0));
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -385,10 +393,14 @@ public class Model {
 		
 	}
 	
+	/**
+	 * Applies a partial Y gate to a qubit
+	 * @param target		The target qubit
+	 * @param propChange	The proportion of the gate to apply
+	 * @param newstates		The states to contribute to
+	 */
 	public void Ynoise(int target, Complex propChange, Complex[] newstates) {
 		System.out.println("Ynoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
-		//propChange = sqrt(propChange, 64);
-		//Complex compChange = new Complex(propChange, new BigDecimal(0));
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -408,10 +420,14 @@ public class Model {
 		}
 	}
 	
+	/**
+	 * Applies a partial Z gate to a qubit
+	 * @param target		The target qubit
+	 * @param propChange	The proportion of the gate to apply
+	 * @param newstates		The states to contribute to
+	 */
 	public void Znoise(int target, Complex propChange, Complex[] newstates) {
 		System.out.println("Znoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
-		//propChange = sqrt(propChange, 64);
-		//Complex compChange = new Complex(propChange, new BigDecimal(0));
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -427,6 +443,9 @@ public class Model {
 		}
 	}
 	
+	/**
+	 * Applies X, Y, and Z noise to each qubit in the 5 qubit codeword
+	 */
 	public void introduceNoise5() {
 		Random random = new Random();
 		Complex[] amounts = new Complex[16]; //How much each "error" will contribute to the result
@@ -483,6 +502,9 @@ public class Model {
 		states = newstates;
 	}
 	
+	/**
+	 * Applies X, Y, and Z noise to each qubit in the 7 qubit codeword
+	 */
 	public void introduceNoise7() {
 		Random random = new Random();
 		Complex[] amounts = new Complex[22]; //How much each "error" will contribute to the result
@@ -547,6 +569,7 @@ public class Model {
 	
 	/**
 	 * Increments the current position, to be used by controller, and updates the state of the process
+	 * Synchronized so as not not interfere with the decode method
 	 * @return The new position
 	 */
 	public synchronized int incPos() {
@@ -608,6 +631,9 @@ public class Model {
 		return num;
 	}
 	
+	/**
+	 * Applies the necessary gates in order to encode the codeword for the current process
+	 */
 	public void encode() {
 		if(teleOrError.equals("Error Correction 5")) {
 			Z(1); H(1); Z(1); Cnot(1,2); H(1); H(2); Cnot(1,3); Cnot(2,3); H(3); Cnot(1,4);
@@ -618,6 +644,10 @@ public class Model {
 		}
 	}
 	
+	/**
+	 * Applies the necessary gates in order to decode the codeword for the current process,
+	 * and stores it in the decoded array
+	 */
 	public synchronized void decode() {
 		states = process[position];
 		if(teleOrError.equals("Error Correction 5")) {

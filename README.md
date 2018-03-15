@@ -1,6 +1,5 @@
 TODO LIST:
 fix Z gate bug
-put the windows in better places; process view down bottom, other stuff along the top
 
 :	M0	M1	M2	N0	N1	N2
 
