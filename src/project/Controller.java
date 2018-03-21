@@ -10,14 +10,16 @@ public class Controller {
     Controller(Model model, View view) {
         this.model = model;
         this.view  = view;
-        
-        //Add listeners to the view.
+    }
+    
+    /**
+     * Adds listeners to the view
+     */
+    public void addListeners() {
         view.addForwardListener(new ForwardListener());
         view.addBackListener(new BackListener());
         view.addDecodeListener(new DecodeListener());
-    }
-    
-    public void init() {} //Just to get rid of that pesky warning	
+    }	
     
     /** 
      * For when the forward button is pressed

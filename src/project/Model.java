@@ -363,7 +363,7 @@ public class Model {
 			errorInstructions7trunc[errorInstructions7trunc.length-1] = new Instruction("Y",1); return;
 		}
 		//This state should not be reached, enter dummy instruction
-		System.out.println("Error in errorcorrect7(): "+ancs[0]+ancs[1]+ancs[2]+ancs[3]+ancs[4]+ancs[5]); //TODO remove println
+		System.err.println("Error in errorcorrect7(): "+ancs[0]+ancs[1]+ancs[2]+ancs[3]+ancs[4]+ancs[5]);
 		errorInstructions7[errorInstructions7.length-1] = new Instruction("",1);
 	}
 	
@@ -374,7 +374,6 @@ public class Model {
 	 * @param newstates		The states to contribute to
 	 */
 	public void Xnoise(int target, Complex propChange, Complex[] newstates) {
-		System.out.println("Xnoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -400,7 +399,6 @@ public class Model {
 	 * @param newstates		The states to contribute to
 	 */
 	public void Ynoise(int target, Complex propChange, Complex[] newstates) {
-		System.out.println("Ynoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -427,7 +425,6 @@ public class Model {
 	 * @param newstates		The states to contribute to
 	 */
 	public void Znoise(int target, Complex propChange, Complex[] newstates) {
-		System.out.println("Znoise on qubit "+target+", propChange is "+propChange.prob().doubleValue()); //TODO remove println
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -453,20 +450,11 @@ public class Model {
 		for(int i = 0; i < dimension; i++) {
 			newstates[i] = new Complex(new BigDecimal(0), new BigDecimal(0));
 		}
-		amounts[0] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(0));
-		//Complex total = amounts[0].mult(amounts[0]);
+		
+		amounts[0] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(random.nextDouble()));
 		for(int i = 1; i < 16; i++) { //Find the total of the randomly generated numbers
-			amounts[i] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(0));
-			//total = total.add(amounts[i].mult(amounts[i]));
+			amounts[i] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(random.nextDouble()));
 		}
-		/*for(int i = 0; i < 16; i++) { //Divide each number by the total to get a final array which sums to one
-			amounts[i] = amounts[i].div(total.sqrt());
-		}
-		Complex fin = new Complex(new BigDecimal(0), new BigDecimal(0));
-		for(int i = 0; i < 16; i++) {
-			fin = fin.add(amounts[i].mult(amounts[i]));
-		}
-		System.out.println(fin.getReal().doubleValue());*/
 		//Print the probabilities that each ancilla should have of being one TODO remove printlns
 		/*System.out.println("M0: "+ amounts[8].prob().add(amounts[12].prob()).add(amounts[13].prob()).add(
 				amounts[14].prob()).add(amounts[15].prob()).add(amounts[19].prob()).add(amounts[20].prob()).add(
@@ -512,22 +500,14 @@ public class Model {
 		for(int i = 0; i < dimension; i++) {
 			newstates[i] = new Complex(new BigDecimal(0), new BigDecimal(0));
 		}
+		
 		amounts[0] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(random.nextDouble()));
-		//Complex total = new Complex(amounts[0].mult(amounts[0]));
 		for(int i = 1; i < 22; i++) { //Find the total of the randomly generated numbers
 			amounts[i] = new Complex(new BigDecimal(random.nextDouble()), new BigDecimal(random.nextDouble()));
-			//total = total.add(amounts[i].mult(amounts[i]));
 		}
-		/*for(int i = 0; i < 22; i++) { //Divide each number by the total to get a final array which sums to one
-			amounts[i] = amounts[i].div(total);
-		}
-		Complex fin = new Complex(new BigDecimal(0), new BigDecimal(0));
-		for(int i = 0; i < 22; i++) {
-			fin = fin.add(amounts[i].mult(amounts[i]));
-		}
-		System.out.println(fin.prob().doubleValue());*/
+		
 		//Print the probabilities that each ancilla should have of being one TODO remove printlns
-		System.out.println("M0: "+ amounts[8].prob().add(amounts[12].prob()).add(amounts[13].prob()).add(
+		/*System.out.println("M0: "+ amounts[8].prob().add(amounts[12].prob()).add(amounts[13].prob()).add(
 				amounts[14].prob()).add(amounts[15].prob()).add(amounts[19].prob()).add(amounts[20].prob()).add(
 				amounts[21].prob()).doubleValue());
 		System.out.println("M1: "+ amounts[9].prob().add(amounts[11].prob()).add(amounts[13].prob()).add(
@@ -544,7 +524,8 @@ public class Model {
 				amounts[13].prob()).add(amounts[14].prob()).doubleValue());
 		System.out.println("N2: "+ amounts[3].prob().add(amounts[4].prob()).add(amounts[5].prob()).add(
 				amounts[7].prob()).add(amounts[10].prob()).add(amounts[11].prob()).add(
-				amounts[12].prob()).add(amounts[14].prob()).doubleValue());
+				amounts[12].prob()).add(amounts[14].prob()).doubleValue());*/
+		
 		for(int i = 0; i < dimension; i++) { //Add the component from the probability of having no error
 			newstates[i] = newstates[i].add(states[i].mult(amounts[0]));
 		}
@@ -558,7 +539,7 @@ public class Model {
 			Znoise(i-14, amounts[i], newstates);
 		}
 		Complex total = new Complex(new BigDecimal(0), new BigDecimal(0));
-		for(int i = 0; i < dimension; i++) {
+		for(int i = 0; i < dimension; i++) { //Normalise the states
 			total = total.add(new Complex(newstates[i].prob(), new BigDecimal(0)));
 		}
 		for(int i = 0; i < dimension; i++) {
@@ -608,7 +589,6 @@ public class Model {
 			for(int i = 0; i < dimension; i ++) { //Print the total probability in the current state
 				total = total.add(states[i].prob());
 			}
-			System.out.println("Total probability is: " + total.doubleValue()); //TODO remove println
 		}
 		return position;
 	}
@@ -658,14 +638,8 @@ public class Model {
 			for(int i = 0; i < dimension; i++) {
 				if((Math.floor (i/Math.pow(2,1-1))  %2)==0) { 	//For every state where qubit 1 would be 0
 					decoded[0] = decoded[0].add(states[i]);
-					if(!(BDcloseTo(states[i].prob(), 0))) {
-						System.out.println("found zero state");
-					}
 				} else {										//Else, if it is 1
 					decoded[1] = decoded[1].add(states[i]);
-					if(!(BDcloseTo(states[i].prob(), 0))) {
-						System.out.println("found one state");
-					}
 				}
 			}
 		} else {

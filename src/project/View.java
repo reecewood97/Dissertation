@@ -157,7 +157,7 @@ public class View extends JFrame {
         qubitPanel = new JPanel();
         qubitPanel.setLayout(new BoxLayout(qubitPanel, BoxLayout.PAGE_AXIS));
         for(int i = 0; i < qubitStates.size(); i++) {
-        	qubitPanel.add(qubitStates.get(qubitStates.size()-i-1)); //TODO
+        	qubitPanel.add(qubitStates.get(qubitStates.size()-i-1));
         }
         qubitScroll = new JScrollPane(qubitPanel);
         qubitView = new JInternalFrame("Qbit states", true, true);
@@ -299,7 +299,7 @@ public class View extends JFrame {
     	}
     	double bada = Math.abs((l1.getReal().doubleValue()-l2.getReal().doubleValue()));
     	double bing = Math.abs((l1.getImag().doubleValue()-l2.getImag().doubleValue()));
-    	if(bada<0.000000001 && bing<0.0000000001) {
+    	if(bada<0.0000000001 && bing<0.0000000001) {
     			lambda.setText("States are equivalent. Lambda is "+
     					l1.getReal().setScale(20, RoundingMode.HALF_DOWN)+
     					" + "+l1.getImag().setScale(20, RoundingMode.HALF_DOWN)+"i");
@@ -312,7 +312,7 @@ public class View extends JFrame {
    				+"i) |1>");
    		//viewDec.revalidate();
     	
-    	//SimpView TODO
+    	//SimpView
     	if((model.teleOrError().equals("Error Correction 7") && ((model.maxPos()-model.getPos() < 10) || (model.maxPos()-model.getPos() > 42))) ||
     			(model.teleOrError().equals("Error Correction 5") && (model.maxPos()-model.getPos() < 9 || model.maxPos()-model.getPos() > 28)) ||
     			(model.teleOrError().equals("Teleportation"))) {

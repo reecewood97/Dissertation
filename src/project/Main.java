@@ -59,7 +59,7 @@ public class Main {
 			model.teleInit(a1is0, a1is1); //Set up the model
 			View view = new View(model); //Initialise all of the components of the system
 			Controller controller = new Controller(model, view);
-			controller.init();
+			controller.addListeners();
 			view.setVisible(true);
 			
 		} else if(selectedValue.equals(possibleValues[1])) { //7 Qubit Error Correction selected
@@ -113,7 +113,7 @@ public class Main {
 			model.errorInit7(a1is0, a1is1, enc.equals("No")); //Set up all components of the system
 			View view = new View(model);
 			Controller controller = new Controller(model, view);
-			controller.init();
+			controller.addListeners();
 			view.setVisible(true);
 			
 		} else if(selectedValue.equals(possibleValues[2])) {
@@ -167,7 +167,7 @@ public class Main {
 			model.errorInit5(a1is0, a1is1, enc.equals("No")); //Set up all components of the system
 			View view = new View(model);
 			Controller controller = new Controller(model, view);
-			controller.init();
+			controller.addListeners();
 			view.setVisible(true);
 		}
 

@@ -1,6 +1,3 @@
-TODO LIST:
-fix Z gate bug
-
 :	M0	M1	M2	N0	N1	N2
 
 X0: 			N0
