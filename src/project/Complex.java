@@ -71,7 +71,7 @@ public class Complex {
 	 */
 	public Complex div(Complex arg) {
 		Complex denom = arg.mult(arg.conj());
-		assert(denom.getImag().equals(new BigDecimal(0)));
+		//assert(denom.getImag().equals(new BigDecimal(0)));
 		BigDecimal denominator = denom.getReal();
 		Complex numer = this.mult(arg.conj());
 		return new Complex(numer.getReal().divide(denominator, 64, RoundingMode.HALF_UP),
@@ -110,6 +110,8 @@ public class Complex {
 	
 	/**
 	 * @return The argument of this complex number
+	 * This function was adapted from https://www.ngs.noaa.gov/gps-toolbox/Hehl/Complex.java
+	 * The author of the source code on that page is listed as hehl@tfh-berlin.de
 	 */
 	public double arg() {
         return Math.atan2(real.doubleValue(),imag.doubleValue());
@@ -117,12 +119,15 @@ public class Complex {
 	
 	/**
 	 * @return The square root of this complex number
+	 * This function was adapted from https://www.ngs.noaa.gov/gps-toolbox/Hehl/Complex.java
+	 * The author of the source code on that page is listed as hehl@tfh-berlin.de
 	 */
 	public Complex sqrt() {
+		
         BigDecimal rmod = Model.sqrt(this.mod().getReal(), 64);
-        double theta = this.arg()/2;
-        return new Complex(rmod.multiply(new BigDecimal(Math.cos(theta))),
-        		rmod.multiply(new BigDecimal(Math.sin(theta))));
+        double phi = this.arg()/2;
+        return new Complex(rmod.multiply(new BigDecimal(Math.cos(phi))),
+        		rmod.multiply(new BigDecimal(Math.sin(phi))));
     }
 	
 	public boolean equals(Complex other) {

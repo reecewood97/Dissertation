@@ -297,9 +297,9 @@ public class View extends JFrame {
     			l2 = decode[0].div(init[0]);
     		}
     	}
-    	double bada = Math.abs((l1.getReal().doubleValue()-l2.getReal().doubleValue()));
-    	double bing = Math.abs((l1.getImag().doubleValue()-l2.getImag().doubleValue()));
-    	if(bada<0.0000000001 && bing<0.0000000001) {
+    	double lreal = Math.abs((l1.getReal().doubleValue()-l2.getReal().doubleValue()));
+    	double limag = Math.abs((l1.getImag().doubleValue()-l2.getImag().doubleValue()));
+    	if(lreal<0.0000000001 && limag<0.0000000001) {
     			lambda.setText("States are equivalent. Lambda is "+
     					l1.getReal().setScale(20, RoundingMode.HALF_DOWN)+
     					" + "+l1.getImag().setScale(20, RoundingMode.HALF_DOWN)+"i");

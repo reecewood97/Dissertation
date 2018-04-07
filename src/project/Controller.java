@@ -12,18 +12,18 @@ public class Controller {
         this.view  = view;
     }
     
-    /**
-     * Adds listeners to the view
-     */
+   /**
+    * Adds listeners to the view
+    */
     public void addListeners() {
         view.addForwardListener(new ForwardListener());
         view.addBackListener(new BackListener());
         view.addDecodeListener(new DecodeListener());
     }	
     
-    /** 
-     * For when the forward button is pressed
-     */
+   /** 
+    * For when the forward button is pressed
+    */
     class ForwardListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
         	model.incPos();

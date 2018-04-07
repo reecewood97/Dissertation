@@ -8,9 +8,9 @@ import java.math.RoundingMode;
 public class Model {
 	
 	//Instructions for the teleportation protocol
-	private Instruction[] teleInstructions = { new Instruction("H",2), new Instruction("Cnot",2,1),
-			new Instruction("Cnot",3,2), new Instruction("H",3), new Instruction("M",2),
-			new Instruction("M",3), new Instruction("Cnot",2,1), new Instruction("CZ",3,1)};
+	private Instruction[] teleInstructions = { new Instruction("H",2), new Instruction("Cnot",2,3),
+			new Instruction("Cnot",1,2), new Instruction("H",1), new Instruction("M",1),
+			new Instruction("M",2), new Instruction("Cnot",2,3), new Instruction("CZ",1,3)};
 	
 	//Instructions for the 5 qubit error correction protocol, with encoding
 	private Instruction[] errorInstructions5 = { new Instruction("Z",1), new Instruction("H",1),
@@ -177,7 +177,7 @@ public class Model {
 	 * Read off the values of the ancillas and replace the final instruction with the one necessary
 	 * to correct whatever error has taken place
 	 */
-	public void errorCorrect5() {
+	private void errorCorrect5() {
 		boolean[] ancs = new boolean[4];
 		for(int i = 0; i < ancs.length; i++) {
 			ancs[i] = false;
@@ -261,7 +261,7 @@ public class Model {
 	 * Reads the measurements of the ancillas and decides the necessary operation, if any, 
 	 * which is needed to return the qubits to their correct state
 	 */
-	public void errorCorrect7() {
+	private void errorCorrect7() {
 		boolean[] ancs = new boolean[6];
 		for(int i = 0; i < ancs.length; i++) {
 			ancs[i] = false;
@@ -373,7 +373,7 @@ public class Model {
 	 * @param propChange	The proportion of the gate to apply
 	 * @param newstates		The states to contribute to
 	 */
-	public void Xnoise(int target, Complex propChange, Complex[] newstates) {
+	private void Xnoise(int target, Complex propChange, Complex[] newstates) {
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -398,7 +398,7 @@ public class Model {
 	 * @param propChange	The proportion of the gate to apply
 	 * @param newstates		The states to contribute to
 	 */
-	public void Ynoise(int target, Complex propChange, Complex[] newstates) {
+	private void Ynoise(int target, Complex propChange, Complex[] newstates) {
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -424,7 +424,7 @@ public class Model {
 	 * @param propChange	The proportion of the gate to apply
 	 * @param newstates		The states to contribute to
 	 */
-	public void Znoise(int target, Complex propChange, Complex[] newstates) {
+	private void Znoise(int target, Complex propChange, Complex[] newstates) {
 		double tar = (double)target;
 		
 		for(int i = 0; i < dimension; i++) {
@@ -443,7 +443,7 @@ public class Model {
 	/**
 	 * Applies X, Y, and Z noise to each qubit in the 5 qubit codeword
 	 */
-	public void introduceNoise5() {
+	private void introduceNoise5() {
 		Random random = new Random();
 		Complex[] amounts = new Complex[16]; //How much each "error" will contribute to the result
 		Complex[] newstates = new Complex[dimension];
@@ -493,7 +493,7 @@ public class Model {
 	/**
 	 * Applies X, Y, and Z noise to each qubit in the 7 qubit codeword
 	 */
-	public void introduceNoise7() {
+	private void introduceNoise7() {
 		Random random = new Random();
 		Complex[] amounts = new Complex[22]; //How much each "error" will contribute to the result
 		Complex[] newstates = new Complex[dimension];
@@ -614,7 +614,7 @@ public class Model {
 	/**
 	 * Applies the necessary gates in order to encode the codeword for the current process
 	 */
-	public void encode() {
+	private void encode() {
 		if(teleOrError.equals("Error Correction 5")) {
 			Z(1); H(1); Z(1); Cnot(1,2); H(1); H(2); Cnot(1,3); Cnot(2,3); H(3); Cnot(1,4);
 			Cnot(3,4); H(1); H(4); Cnot(1,5); Cnot(2,5); Cnot(3,5); H(1); H(2);
@@ -627,6 +627,7 @@ public class Model {
 	/**
 	 * Applies the necessary gates in order to decode the codeword for the current process,
 	 * and stores it in the decoded array
+	 * One of the methods called by the controller
 	 */
 	public synchronized void decode() {
 		states = process[position];
@@ -767,7 +768,7 @@ public class Model {
 	 * Implements a Hadamard gate
 	 * @param target The target qubit
 	 */
-	public void H(int target) {
+	private void H(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
 		for(int i = 0; i < dimension; i++) {
@@ -803,7 +804,7 @@ public class Model {
 	 * @param control The control qubit
 	 * @param target The target qubit
 	 */
-	public void Cnot(int control, int target) {
+	private void Cnot(int control, int target) {
 		double con = (double)control;
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
@@ -837,7 +838,7 @@ public class Model {
 	 * Implements a not gate.
 	 * @param target The target qubit
 	 */
-	public void X(int target) {
+	private void X(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
 		for(int i = 0; i < dimension; i++) {
@@ -865,7 +866,7 @@ public class Model {
 	 * Implements a measurement gate
 	 * @param target The target qubit
 	 */
-	public void M(int target) {
+	private void M(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
 		for(int i = 0; i < dimension; i++) {
@@ -913,7 +914,7 @@ public class Model {
 	 * @param control The control qubit
 	 * @param target The target qubit
 	 */
-	public void CZ(int control, int target) {
+	private void CZ(int control, int target) {
 		double con = (double)control;
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
@@ -945,7 +946,7 @@ public class Model {
 	 * Implements a Z gate
 	 * @param target The target qubit
 	 */
-	public void Z(int target) {
+	private void Z(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
 		for(int i = 0; i < dimension; i++) {
@@ -971,7 +972,7 @@ public class Model {
 	 * Implements a Y gate
 	 * @param target The target qubit
 	 */
-	public void Y(int target) {
+	private void Y(int target) {
 		double tar = (double)target;
 		Complex[] newstates = new Complex[dimension];
 		for(int i = 0; i < dimension; i++) {
