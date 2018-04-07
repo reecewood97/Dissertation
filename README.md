@@ -1,4 +1,6 @@
-The SVN for this project can be found at: 
+The SVN for this project can be found at: https://git-teaching.cs.bham.ac.uk/mod-ug-proj-2017/rmw530
+
+The ancilla readings and their corresponding correcting gates for 7 qubit error correction are as follows:
 
 :	M0	M1	M2	N0	N1	N2
 
